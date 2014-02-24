@@ -44,27 +44,7 @@ namespace MobileDevice
         {
             return MobileDevice.AMRecoveryModeDeviceSetAutoBoot(this.RecoveryHandle, Conversions.ToByte(Interaction.IIf(value, 1, 0)));
         }
-        /// <summary>
-        /// 暂未完善
-        /// </summary>
-        public object AuthlnstallPreflightOptions
-        {
-            get
-            {
-                object objectValue = null;
-                try
-                {
-                    IntPtr sourceRef = MobileDevice.AMRecoveryModeDeviceCopyAuthlnstallPreflightOptions(this.RecoveryHandle, IntPtr.Zero, IntPtr.Zero);
-                    //if (sourceRef != IntPtr.Zero) objectValue = RuntimeHelpers.GetObjectValue(CoreFoundation.ManagedTypeFromCFType(ref sourceRef));
-                }
-                catch (Exception exception1)
-                {
-                    ProjectData.SetProjectError(exception1);
-                    ProjectData.ClearProjectError();
-                }
-                return objectValue;
-            }
-        }
+
         public string IMEI
         {
             get
