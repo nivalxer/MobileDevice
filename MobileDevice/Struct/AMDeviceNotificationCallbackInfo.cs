@@ -11,8 +11,8 @@ namespace MobileDevice.Struct
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     internal struct AMDeviceNotificationCallbackInfo
     {
-        internal IntPtr deviceRef;
-        public ConnectNotificationMessage msg;
-        public uint notificationId;
+        internal IntPtr DevicePtr;
+        public ConnectNotificationMessage Msg;
+        public uint NotificationId;
     }
 }
