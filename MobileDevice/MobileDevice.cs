@@ -13,10 +13,10 @@ using MobileDevice.Enum;
 
 namespace MobileDevice
 {
-    internal class iTunesMobileDevice
+    internal class MobileDevice
     {
 
-        static iTunesMobileDevice()
+        static MobileDevice()
         {
             string directoryName = Helper.DLLHelper.GetiTunesMobileDeviceDllPath();
             if (!string.IsNullOrWhiteSpace(directoryName))
