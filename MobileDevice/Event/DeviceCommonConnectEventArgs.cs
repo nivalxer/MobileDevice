@@ -8,18 +8,18 @@ using System.Threading.Tasks;
 
 namespace MobileDevice.Event
 {
-    public unsafe class ConnectEventArgs : EventArgs
+    public class DeviceCommonConnectEventArgs : EventArgs
     {
-        private readonly IntPtr device;
+        private readonly iOSDevice device;
         private readonly ConnectNotificationMessage message;
 
-        internal ConnectEventArgs(AMDeviceNotificationCallbackInfo cbi)
+        internal DeviceCommonConnectEventArgs(iOSDevice device, ConnectNotificationMessage message)
         {
-            message = cbi.Msg;
-            device = cbi.DevicePtr;
+            this.device = device;
+            this.message = message;
         }
 
-        public IntPtr Device
+        public iOSDevice Device
         {
             get { return device; }
         }

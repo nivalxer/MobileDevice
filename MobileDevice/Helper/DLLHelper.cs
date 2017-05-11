@@ -17,23 +17,27 @@ namespace MobileDevice.Helper
         public static string GetiTunesMobileDeviceDllPath()
         {
             //判断注册表
-            RegistryKey subkey = Registry.LocalMachine.OpenSubKey(@"HKEY_LOCAL_MACHINE\SOFTWARE\Apple Inc.\Apple Mobile Device Support\Shared");
+            RegistryKey subkey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Apple Inc.\Apple Mobile Device Support\Shared");
             if (subkey != null)
             {
                 string path = subkey.GetValue("iTunesMobileDeviceDLL") as string;
                 if (!string.IsNullOrWhiteSpace(path))
                 {
-                    return path;
+                    FileInfo file = new FileInfo(path);
+                    if(file.Exists)
+                    {
+                        return file.DirectoryName;
+                    }
                 }
             }
             //判断常用路径
-            string directory = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles) + @"\Apple\Mobile Device Support\bin";//判断64位
-            if (!File.Exists(directory + @"\iTunesMobileDevice.dll"))
+            string directory = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles) + @"\Apple\Mobile Device Support";//判断64位
+            if (File.Exists(directory + @"\iTunesMobileDevice.dll"))
             {
                 return directory;
             }
-            directory = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFilesX86) + @"\Apple\Mobile Device Support\bin";//针对老版本的iTunes64位
-            if (!File.Exists(directory + @"\iTunesMobileDevice.dll"))
+            directory = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFilesX86) + @"\Apple\Mobile Device Support";//针对老版本的iTunes64位
+            if (File.Exists(directory + @"\iTunesMobileDevice.dll"))
             {
                 return directory;
             }
@@ -47,7 +51,7 @@ namespace MobileDevice.Helper
         public static string GetAppleApplicationSupportFolder()
         {
             //判断注册表
-            RegistryKey subkey = Registry.LocalMachine.OpenSubKey(@"HKEY_LOCAL_MACHINE\SOFTWARE\Apple Inc.\Apple Application Support");
+            RegistryKey subkey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Apple Inc.\Apple Application Support");
             if (subkey != null)
             {
                 string path = subkey.GetValue("InstallDir") as string;

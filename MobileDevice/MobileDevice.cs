@@ -18,10 +18,12 @@ namespace MobileDevice
 
         static MobileDevice()
         {
-            string directoryName = Helper.DLLHelper.GetiTunesMobileDeviceDllPath();
-            if (!string.IsNullOrWhiteSpace(directoryName))
+            string mobileDeviceDirectoryName = Helper.DLLHelper.GetiTunesMobileDeviceDllPath();
+            string applicationSupportDirectoryName = Helper.DLLHelper.GetAppleApplicationSupportFolder();
+            if (!string.IsNullOrWhiteSpace(mobileDeviceDirectoryName) && !string.IsNullOrWhiteSpace(applicationSupportDirectoryName))
             {
-                Environment.SetEnvironmentVariable("Path",string.Join(";", Environment.GetEnvironmentVariable("Path"), Path.GetDirectoryName(directoryName)));
+                Environment.SetEnvironmentVariable("Path", string.Join(";", new[]
+                    {Environment.GetEnvironmentVariable("Path"), mobileDeviceDirectoryName, applicationSupportDirectoryName}));
             }
         }
 
