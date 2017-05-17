@@ -59,6 +59,8 @@
     <Compile Include="CoreFundation\SECURITY_ATTRIBUTES.cs" />
     <Compile Include="CoreFundation\STARTUPINFO.cs" />
     <Compile Include="Enum\ConnectNotificationMessage.cs" />
+    <Compile Include="Enum\DeviceColor.cs" />
+    <Compile Include="Enum\DeviceInfoKey.cs" />
     <Compile Include="Enum\kAMDError.cs" />
     <Compile Include="Enum\ListenErrorEventType.cs" />
     <Compile Include="Event\DeviceCommonConnectEventArgs.cs" />

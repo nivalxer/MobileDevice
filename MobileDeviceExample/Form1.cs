@@ -72,5 +72,27 @@ namespace MobileDeviceExample
                 }));
             }
         }
+
+        private void btnReload_Click(object sender, EventArgs e)
+        {
+            if (currentiOSDevice != null && currentiOSDevice.IsConnected)
+            {
+                DrviceName.Text = currentiOSDevice.DeviceName;
+                DeviceSerial.Text = currentiOSDevice.SerialNumber;
+                DeviceVersion.Text = currentiOSDevice.ProductVersion;
+                DeviceModelNumber.Text = currentiOSDevice.ModelNumber;
+                ActivationState.Text = currentiOSDevice.ActivationState;
+                DeviceBuildVersion.Text = currentiOSDevice.BuildVersion;
+                DeviceBasebandBootloaderVersion.Text = currentiOSDevice.BasebandBootloaderVersion;
+                DeviceBasebandVersion.Text = currentiOSDevice.BasebandVersion;
+                DeviceFirmwareVersion.Text = currentiOSDevice.FirmwareVersion;
+                DeviceId.Text = currentiOSDevice.UniqueDeviceID;
+                DevicePhoneNumber.Text = currentiOSDevice.PhoneNumber;
+                DeviceProductType.Text = currentiOSDevice.ProductType;
+                DeviceSIMStatus.Text = currentiOSDevice.SIMStatus;
+                DeviceWiFiAddress.Text = currentiOSDevice.WiFiAddress;
+                DeviceColor.Text = currentiOSDevice.DeviceColor.ToString();
+            }
+        }
     }
 }

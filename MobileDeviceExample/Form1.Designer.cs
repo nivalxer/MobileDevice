@@ -70,12 +70,13 @@
             // btnReload
             // 
             this.btnReload.Location = new System.Drawing.Point(176, 382);
-            this.btnReload.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.btnReload.Margin = new System.Windows.Forms.Padding(4);
             this.btnReload.Name = "btnReload";
             this.btnReload.Size = new System.Drawing.Size(112, 34);
             this.btnReload.TabIndex = 1;
             this.btnReload.Text = "刷新状态";
             this.btnReload.UseVisualStyleBackColor = true;
+            this.btnReload.Click += new System.EventHandler(this.btnReload_Click);
             // 
             // label1
             // 
@@ -394,7 +395,7 @@
             // button4
             // 
             this.button4.Location = new System.Drawing.Point(51, 428);
-            this.button4.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button4.Margin = new System.Windows.Forms.Padding(4);
             this.button4.Name = "button4";
             this.button4.Size = new System.Drawing.Size(134, 34);
             this.button4.TabIndex = 37;
@@ -404,7 +405,7 @@
             // button7
             // 
             this.button7.Location = new System.Drawing.Point(195, 428);
-            this.button7.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button7.Margin = new System.Windows.Forms.Padding(4);
             this.button7.Name = "button7";
             this.button7.Size = new System.Drawing.Size(142, 34);
             this.button7.TabIndex = 41;
@@ -472,7 +473,7 @@
             this.Controls.Add(this.DrviceName);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.btnReload);
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "Form1";
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Form1_Load);
