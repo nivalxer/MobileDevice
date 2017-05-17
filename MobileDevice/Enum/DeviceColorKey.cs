@@ -8,16 +8,16 @@ namespace MobileDevice.Enum
 {
     public enum DeviceColorKey
     {
-        Black = 1,
-        Blue = 5,
-        Default = 0,
-        Gold = 9,
-        Green = 8,
-        Pink = 6,
-        Red = 7,
-        Silver = 3,
         Unknown = -1,
+        Default = 0,
+        Black = 1,
         White = 2,
-        Yellow = 4
+        Silver = 3,
+        Gold = 4,
+        Yellow = 5,
+        Blue = 6,
+        Pink = 7,
+        Red = 8,
+        Green = 9,
     }
 }
