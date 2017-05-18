@@ -415,7 +415,48 @@ namespace MobileDevice
         {
             get
             {
-                //TODO:判断设备颜色
+                if(this.deviceColor == DeviceColorKey.Default)
+                {
+                    var deviceColorValue = GetDeviceValue(DeviceInfoKey.DeviceColor);
+                    if (deviceColorValue != null)
+                    {
+                        var deviceColorString = deviceColorValue.ToString();
+                        if (!string.IsNullOrWhiteSpace(deviceColorString))
+                        {
+                            switch(deviceColorString.ToLower())
+                            {
+                                case "black":
+                                case "#99989b":
+                                case "1":
+                                    this.deviceColor = DeviceColorKey.Black;
+                                    break;
+                                case "silver":
+                                case "#d7d9d8":
+                                case "2":
+                                    this.deviceColor = DeviceColorKey.Silver;
+                                    break;
+                                case "gold":
+                                case "#d4c5b3":
+                                case "3":
+                                    this.deviceColor = DeviceColorKey.Gold;
+                                    break;
+                                case "rose gold":
+                                case "#e1ccb5":
+                                case "4":
+                                    this.deviceColor = DeviceColorKey.Rose_Gold;
+                                    break;
+                                case "jet black":
+                                case "#0a0a0a":
+                                case "5":
+                                    this.deviceColor = DeviceColorKey.Jet_Black;
+                                    break;
+                                default:
+                                    this.deviceColor = DeviceColorKey.Unknown;
+                                    break;
+                            }
+                        }
+                    }
+                }
                 return this.deviceColor;
             }
         }
