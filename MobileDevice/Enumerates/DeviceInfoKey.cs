@@ -106,6 +106,8 @@ namespace MobileDevice.Enumerates
         WiFiAddress,
         [Description("当前电量")]
         BatteryCurrentCapacity,
+        [Description("设备是否充电")]
+        BatteryIsCharging,
         [Description("键盘")]
         Keyboard,
         [Description("AppleID")]

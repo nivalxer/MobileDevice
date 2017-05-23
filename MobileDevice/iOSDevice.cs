@@ -305,7 +305,6 @@ namespace MobileDevice
         /// <returns></returns>
         public int GetBatteryCurrentCapacity()
         {
-            int result = -1;
             try
             {
                 string s = Convert.ToString(this.GetDeviceValue("com.apple.mobile.battery", DeviceInfoKey.BatteryCurrentCapacity)) + string.Empty;
@@ -317,9 +316,28 @@ namespace MobileDevice
             catch (Exception ex)
             {
             }
-            return result;
+            return -1;
         }
 
+        /// <summary>
+        /// 获取设备当前是否充电
+        /// </summary>
+        /// <returns></returns>
+        public bool GetBatteryIsCharging()
+        {
+            try
+            {
+                object deviceValue = this.GetDeviceValue("com.apple.mobile.battery", DeviceInfoKey.BatteryIsCharging);
+                if ((deviceValue != null) && (deviceValue is bool))
+                {
+                    return Convert.ToBoolean(deviceValue);
+                }
+            }
+            catch
+            {
+            }
+            return false;
+        }
 
         #region 设备信息字段        
         public string ActivationState
