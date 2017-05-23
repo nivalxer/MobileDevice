@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Win32;
 using MobileDevice.Callback;
 using MobileDevice.CoreFundation;
-using MobileDevice.Enum;
+using MobileDevice.Enumerates;
 
 namespace MobileDevice
 {

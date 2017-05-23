@@ -30,7 +30,7 @@ namespace MobileDeviceExample
 
         private void ListenError(object sender,ListenErrorEventHandlerEventArgs args)
         {
-            if(args.ErrorType == MobileDevice.Enum.ListenErrorEventType.StartListen)
+            if(args.ErrorType == MobileDevice.Enumerates.ListenErrorEventType.StartListen)
             {
                 throw new Exception(args.ErrorMessage);
             }
@@ -38,7 +38,7 @@ namespace MobileDeviceExample
 
         private void CommonConnectDevice(object sender, DeviceCommonConnectEventArgs args)
         {
-            if(args.Message == MobileDevice.Enum.ConnectNotificationMessage.Connected)
+            if(args.Message == MobileDevice.Enumerates.ConnectNotificationMessage.Connected)
             {
                 currentiOSDevice = args.Device;
                 this.Invoke(new Action(() =>
@@ -46,7 +46,7 @@ namespace MobileDeviceExample
                     StateLabel.Text = "设备已连接";
                 }));
             }
-            if(args.Message == MobileDevice.Enum.ConnectNotificationMessage.Disconnected)
+            if(args.Message == MobileDevice.Enumerates.ConnectNotificationMessage.Disconnected)
             {
                 this.Invoke(new Action(() =>
                 {
@@ -57,14 +57,14 @@ namespace MobileDeviceExample
 
         private void RecoveryConnectDevice(object sender, DeviceRecoveryConnectEventArgs args)
         {
-            if (args.Message == MobileDevice.Enum.ConnectNotificationMessage.Connected)
+            if (args.Message == MobileDevice.Enumerates.ConnectNotificationMessage.Connected)
             {
                 this.Invoke(new Action(() =>
                 {
                     StateLabel.Text = "恢复模式设备已连接";
                 }));
             }
-            if (args.Message == MobileDevice.Enum.ConnectNotificationMessage.Disconnected)
+            if (args.Message == MobileDevice.Enumerates.ConnectNotificationMessage.Disconnected)
             {
                 this.Invoke(new Action(() =>
                 {
@@ -92,6 +92,7 @@ namespace MobileDeviceExample
                 DeviceSIMStatus.Text = currentiOSDevice.SIMStatus;
                 DeviceWiFiAddress.Text = currentiOSDevice.WiFiAddress;
                 DeviceColor.Text = currentiOSDevice.DeviceColor.ToString();
+                lbBattery.Text = currentiOSDevice.GetBatteryCurrentCapacity().ToString();
             }
         }
     }

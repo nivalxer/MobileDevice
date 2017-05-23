@@ -1,4 +1,4 @@
-﻿using MobileDevice.Enum;
+﻿using MobileDevice.Enumerates;
 using MobileDevice.Struct;
 using System;
 using System.Collections.Generic;

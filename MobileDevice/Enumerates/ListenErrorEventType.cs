@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MobileDevice.Enum
+namespace MobileDevice.Enumerates
 {
     /// <summary>
     /// 监听错误类型

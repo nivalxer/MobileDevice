@@ -1,5 +1,5 @@
 ﻿using MobileDevice.Callback;
-using MobileDevice.Enum;
+using MobileDevice.Enumerates;
 using MobileDevice.Event;
 using MobileDevice.Struct;
 using System;

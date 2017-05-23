@@ -58,11 +58,11 @@
     <Compile Include="CoreFundation\PROCESS_INFORMATION.cs" />
     <Compile Include="CoreFundation\SECURITY_ATTRIBUTES.cs" />
     <Compile Include="CoreFundation\STARTUPINFO.cs" />
-    <Compile Include="Enum\ConnectNotificationMessage.cs" />
-    <Compile Include="Enum\DeviceColorKey.cs" />
-    <Compile Include="Enum\DeviceInfoKey.cs" />
-    <Compile Include="Enum\kAMDError.cs" />
-    <Compile Include="Enum\ListenErrorEventType.cs" />
+    <Compile Include="Enumerates\ConnectNotificationMessage.cs" />
+    <Compile Include="Enumerates\DeviceColorKey.cs" />
+    <Compile Include="Enumerates\DeviceInfoKey.cs" />
+    <Compile Include="Enumerates\kAMDError.cs" />
+    <Compile Include="Enumerates\ListenErrorEventType.cs" />
     <Compile Include="Event\DeviceCommonConnectEventArgs.cs" />
     <Compile Include="Event\DeviceCommonConnectEventHandler.cs" />
     <Compile Include="Event\DeviceRecoveryConnectEventArgs.cs" />
@@ -81,6 +81,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Struct\AMDFUModeDevice.cs" />
     <Compile Include="Struct\AMRecoveryDevice.cs" />
+    <Compile Include="Unitiy\EnumerableHelper.cs" />
+    <Compile Include="Unitiy\EnumHelper.cs" />
+    <Compile Include="Unitiy\SafeConvert.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

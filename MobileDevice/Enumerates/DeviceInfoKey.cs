@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MobileDevice.Enum
+namespace MobileDevice.Enumerates
 {
     /// <summary>
     /// 设备基础信息枚举

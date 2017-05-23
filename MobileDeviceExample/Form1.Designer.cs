@@ -65,6 +65,8 @@
             this.button7 = new System.Windows.Forms.Button();
             this.DeviceColor = new System.Windows.Forms.Label();
             this.label17 = new System.Windows.Forms.Label();
+            this.lable16 = new System.Windows.Forms.Label();
+            this.lbBattery = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // btnReload
@@ -432,11 +434,31 @@
             this.label17.TabIndex = 43;
             this.label17.Text = "颜色";
             // 
+            // lable16
+            // 
+            this.lable16.AutoSize = true;
+            this.lable16.Location = new System.Drawing.Point(430, 132);
+            this.lable16.Name = "lable16";
+            this.lable16.Size = new System.Drawing.Size(71, 18);
+            this.lable16.TabIndex = 45;
+            this.lable16.Text = "Battery";
+            // 
+            // lbBattery
+            // 
+            this.lbBattery.AutoSize = true;
+            this.lbBattery.Location = new System.Drawing.Point(586, 132);
+            this.lbBattery.Name = "lbBattery";
+            this.lbBattery.Size = new System.Drawing.Size(71, 18);
+            this.lbBattery.TabIndex = 46;
+            this.lbBattery.Text = "label16";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(854, 480);
+            this.Controls.Add(this.lbBattery);
+            this.Controls.Add(this.lable16);
             this.Controls.Add(this.DeviceColor);
             this.Controls.Add(this.label17);
             this.Controls.Add(this.button7);
@@ -521,6 +543,8 @@
         private System.Windows.Forms.Button button7;
         private System.Windows.Forms.Label DeviceColor;
         private System.Windows.Forms.Label label17;
+        private System.Windows.Forms.Label lable16;
+        private System.Windows.Forms.Label lbBattery;
     }
 }
 

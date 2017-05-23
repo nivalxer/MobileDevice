@@ -1,8 +1,9 @@
 ﻿using MobileDevice.Callback;
 using MobileDevice.CoreFundation;
-using MobileDevice.Enum;
+using MobileDevice.Enumerates;
 using MobileDevice.Event;
 using MobileDevice.Struct;
+using MobileDevice.Unitiy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -297,6 +298,28 @@ namespace MobileDevice
             }
             return resultValue;
         }
+
+        /// <summary>
+        /// 获取设备当前电量
+        /// </summary>
+        /// <returns></returns>
+        public int GetBatteryCurrentCapacity()
+        {
+            int result = -1;
+            try
+            {
+                string s = Convert.ToString(this.GetDeviceValue("com.apple.mobile.battery", DeviceInfoKey.BatteryCurrentCapacity)) + string.Empty;
+                if (s.Length > 0)
+                {
+                    return SafeConvert.ToInt32(s);
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+            return result;
+        }
+
 
         #region 设备信息字段        
         public string ActivationState
