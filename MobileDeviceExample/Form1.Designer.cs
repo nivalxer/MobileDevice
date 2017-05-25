@@ -67,6 +67,7 @@
             this.label17 = new System.Windows.Forms.Label();
             this.lable16 = new System.Windows.Forms.Label();
             this.lbBattery = new System.Windows.Forms.Label();
+            this.btnGetDiagnosticsInfo = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnReload
@@ -452,11 +453,22 @@
             this.lbBattery.TabIndex = 46;
             this.lbBattery.Text = "label16";
             // 
+            // btnGetDiagnosticsInfo
+            // 
+            this.btnGetDiagnosticsInfo.Location = new System.Drawing.Point(362, 428);
+            this.btnGetDiagnosticsInfo.Name = "btnGetDiagnosticsInfo";
+            this.btnGetDiagnosticsInfo.Size = new System.Drawing.Size(125, 34);
+            this.btnGetDiagnosticsInfo.TabIndex = 47;
+            this.btnGetDiagnosticsInfo.Text = "获取诊断信息";
+            this.btnGetDiagnosticsInfo.UseVisualStyleBackColor = true;
+            this.btnGetDiagnosticsInfo.Click += new System.EventHandler(this.btnGetDiagnosticsInfo_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(854, 480);
+            this.Controls.Add(this.btnGetDiagnosticsInfo);
             this.Controls.Add(this.lbBattery);
             this.Controls.Add(this.lable16);
             this.Controls.Add(this.DeviceColor);
@@ -545,6 +557,7 @@
         private System.Windows.Forms.Label label17;
         private System.Windows.Forms.Label lable16;
         private System.Windows.Forms.Label lbBattery;
+        private System.Windows.Forms.Button btnGetDiagnosticsInfo;
     }
 }
 

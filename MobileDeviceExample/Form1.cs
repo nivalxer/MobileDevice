@@ -95,5 +95,10 @@ namespace MobileDeviceExample
                 lbBattery.Text = currentiOSDevice.GetBatteryCurrentCapacity().ToString();
             }
         }
+
+        private void btnGetDiagnosticsInfo_Click(object sender, EventArgs e)
+        {
+            var result = currentiOSDevice.GetBatteryInfoFormDiagnostics();
+        }
     }
 }

@@ -5,10 +5,12 @@ using MobileDevice.Event;
 using MobileDevice.Struct;
 using MobileDevice.Unitiy;
 using System;
+using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 
 namespace MobileDevice
 {
@@ -211,17 +213,253 @@ namespace MobileDevice
         /// 关闭Session，此函数无需外界单独调用，对应功能模块调用已经和开启Session成对存在
         /// </summary>
         /// <returns></returns>
-        private int StopSession()
+        private kAMDError StopSession()
         {
             this.isSessionOpen = false;
             try
             {
-                return MobileDevice.AMDeviceStopSession(this.DevicePtr);
+                return (kAMDError)MobileDevice.AMDeviceStopSession(this.DevicePtr);
             }
             catch
             {
-                return (int)kAMDError.kAMDUndefinedError;
+                return kAMDError.kAMDUndefinedError;
             }
+        }
+
+        /// <summary>
+        /// 开启Socket服务
+        /// </summary>
+        /// <param name="serviceName">服务名</param>
+        /// <param name="serviceSocket">Socket链接</param>
+        /// <returns></returns>
+        private bool StartSocketService(string serviceName, ref int serviceSocket)
+        {
+            var kAMDSuccess = kAMDError.kAMDSuccess;
+            if (serviceSocket > 0)//已经开启服务
+            {
+                return true;
+            }
+            if (!this.isConnected)
+            {
+                if (Connect() != (int)kAMDError.kAMDSuccess)
+                {
+                    Console.WriteLine("StartService()执行Connect()失败");
+                    return false;
+                }
+            }
+            bool openSession = false;
+            if(!this.isSessionOpen)
+            {
+                kAMDSuccess = StartSession();
+                if (kAMDSuccess == kAMDError.kAMDSuccess)
+                {
+                    openSession = true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            var result = false;
+            var zero = IntPtr.Zero;
+            if ((MobileDevice.AMDeviceSecureStartService(this.DevicePtr, CoreFoundation.StringToCFString(serviceName),IntPtr.Zero, ref zero) == (int)kAMDError.kAMDSuccess))
+            {
+                serviceSocket = MobileDevice.AMDServiceConnectionGetSocket(zero);
+                result = true;
+            }
+            else if (MobileDevice.AMDeviceStartService(this.DevicePtr, CoreFoundation.StringToCFString(serviceName),ref serviceSocket, IntPtr.Zero) == (int)kAMDError.kAMDSuccess)
+            {
+                result = true;
+            }
+            if(openSession)
+            {
+                StopSession();
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 停止Socket服务
+        /// </summary>
+        /// <param name="inSocket"></param>
+        /// <returns></returns>
+        private bool StopSocketService(ref int socket)
+        {
+            kAMDError kAMDSuccess = kAMDError.kAMDSuccess;
+            if (socket > 0)
+            {
+                try
+                {
+                    kAMDSuccess = (kAMDError)MobileDevice.closesocket(socket);
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
+            }
+            socket = 0;
+            return kAMDSuccess != kAMDError.kAMDSuccess;
+        }
+
+        /// <summary>
+        /// 发送消息通过Socket，大部分用途为发送plist文件（指令）给设备
+        /// </summary>
+        /// <param name="sock"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+
+        public bool SendMessageToSocket(int sock, IntPtr message)
+        {
+            if ((sock < 1) || (message == IntPtr.Zero))
+            {
+                return false;
+            }
+            var flag = false;
+            var stream = CoreFoundation.CFWriteStreamCreateWithAllocatedBuffers(IntPtr.Zero, IntPtr.Zero);
+            if (stream != IntPtr.Zero)
+            {
+                if (!CoreFoundation.CFWriteStreamOpen(stream))
+                {
+                    return false;
+                }
+                var zero = IntPtr.Zero;
+                if (CoreFoundation.CFPropertyListWriteToStream(message, stream,CFPropertyListFormat.kCFPropertyListBinaryFormat_v1_0, ref zero) > 0)
+                {
+                    var propertyName = CoreFoundation.kCFStreamPropertyDataWritten;
+                    var srcRef = CoreFoundation.CFWriteStreamCopyProperty(stream, propertyName);
+                    var buffer = CoreFoundation.CFDataGetBytePtr(srcRef);
+                    var bufferlen = CoreFoundation.CFDataGetLength(srcRef);
+                    var structure = MobileDevice.htonl((uint)bufferlen);
+                    var num3 = Marshal.SizeOf(structure);
+                    if (MobileDevice.send_UInt32(sock, ref structure, num3, 0) != num3)
+                    {
+                        Console.WriteLine("could not send message size");
+                    }
+                    else if (MobileDevice.send(sock, buffer, bufferlen, 0) != bufferlen)
+                    {
+                        Console.WriteLine("Could not send message.");
+                    }
+                    else
+                    {
+                        flag = true;
+                    }
+                    CoreFoundation.CFRelease(srcRef);
+                }
+                CoreFoundation.CFWriteStreamClose(stream);
+            }
+            return flag;
+        }
+
+        /// <summary>
+        /// 发送Socket消息
+        /// </summary>
+        /// <param name="sock"></param>
+        /// <param name="dict"></param>
+        /// <returns></returns>
+        public bool SendMessageToSocket(int sock, object dict)
+        {
+            var message = CoreFoundation.CFTypeFromManagedType(RuntimeHelpers.GetObjectValue(dict));
+            return SendMessageToSocket(sock, message);
+        }
+
+        /// <summary>
+        /// 接收Socket消息，主要为接收设备返回的指令结果，大部分为Plist，所以函数内将会自行作转换
+        /// </summary>
+        /// <param name="sock"></param>
+        /// <param name="dict"></param>
+        /// <returns></returns>
+        public object ReceiveMessageFromSocket(int sock)
+        {
+            if (sock < 0)
+            {
+                return null;
+            }
+            var recvCount = -1;
+            uint dataSize = 0;
+            uint buffer = 0;
+            uint reviceSize = 0;
+            var zero = IntPtr.Zero;
+            do
+            {
+                recvCount = MobileDevice.recv_UInt32(sock, ref buffer, 4, 0);
+            } while (recvCount < 0);
+            if (recvCount != 4)
+            {
+                return null;
+            }
+            dataSize = MobileDevice.ntohl(buffer);//获取数据总长度
+            if (dataSize <= 0)
+            {
+                Console.WriteLine("receive size error, dataSize:" + dataSize);
+                return null;
+            }
+            zero = Marshal.AllocCoTaskMem((int)dataSize);
+            if (zero == IntPtr.Zero)
+            {
+                Console.WriteLine("Could not allocate message buffer.");
+                return null;
+            }
+            var tempPtr = zero;
+            while (reviceSize < dataSize)
+            {
+                recvCount = MobileDevice.recv(sock, tempPtr, (int)(dataSize - reviceSize), 0);
+                if (recvCount <= -1)
+                {
+                    Console.WriteLine("Could not receive secure message: " + recvCount);
+                    reviceSize = dataSize + 1;
+                }
+                else
+                {
+                    if (recvCount == 0)
+                    {
+                        Console.WriteLine("receive size is zero. ");
+                        break;
+                    }
+                    tempPtr = new IntPtr(tempPtr.ToInt64() + recvCount);
+                    reviceSize += (uint)recvCount;
+                }
+            }
+            var datas = IntPtr.Zero;
+            var srcRef = IntPtr.Zero;
+            if (reviceSize == dataSize)
+            {
+                datas = CoreFoundation.CFDataCreate(CoreFoundation.kCFAllocatorDefault, zero, (int)dataSize);
+                if (datas == IntPtr.Zero)
+                {
+                    Console.WriteLine("Could not create CFData for message");
+                }
+                else
+                {
+                    var errorString = IntPtr.Zero;
+                    srcRef = CoreFoundation.CFPropertyListCreateFromXMLData(CoreFoundation.kCFAllocatorDefault, datas,
+                        CFPropertyListMutabilityOptions.kCFPropertyListImmutable, ref errorString);
+                    if (srcRef == IntPtr.Zero)
+                    {
+                        Console.WriteLine("Could not convert raw xml into a dictionary: " + Convert.ToString(CoreFoundation.ManagedTypeFromCFType(ref errorString)));
+                        return null;
+                    }
+                }
+            }
+            if (datas != IntPtr.Zero)
+            {
+                try
+                {
+                    CoreFoundation.CFRelease(datas);
+                }
+                catch
+                {
+                }
+            }
+            if (zero != IntPtr.Zero)
+            {
+                Marshal.FreeCoTaskMem(zero);
+            }
+            var result = CoreFoundation.ManagedTypeFromCFType(ref srcRef);
+            if (srcRef != IntPtr.Zero)
+            {
+                CoreFoundation.CFRelease(srcRef);
+            }
+            return result;
         }
         #endregion
 
@@ -337,6 +575,59 @@ namespace MobileDevice
             {
             }
             return false;
+        }
+
+        /// <summary>
+        /// 获取电池信息
+        /// </summary>
+        /// <returns></returns>
+        public Dictionary<object, object> GetBatteryInfoFormDiagnostics()
+        {
+            try
+            {
+                var diagnosticsInfo = GetDiagnosticsInfo();
+                if (diagnosticsInfo == null)
+                {
+                    return null;
+                }
+                var dicResult = diagnosticsInfo as Dictionary<object, object>;
+                if (dicResult["Status"].ToString() != "Success")
+                {
+                    return null;
+                }
+                var diagnosticsData = dicResult["Diagnostics"] as Dictionary<object, object>;
+                if (diagnosticsData == null)
+                {
+                    return null;
+                }
+                return diagnosticsData["GasGauge"] as Dictionary<object, object>;
+            }
+            catch(Exception ex)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 获取诊断信息
+        /// </summary>
+        /// <returns></returns>
+        public object GetDiagnosticsInfo()
+        {
+            int socket = 0;
+            var startSocketResult = StartSocketService("com.apple.mobile.diagnostics_relay", ref socket);
+            if(!startSocketResult)
+            {
+                return null;
+            }
+            var dict = new Dictionary<object,object>();
+            dict.Add("Request", "All");
+            if (SendMessageToSocket(socket, dict))
+            {
+                var result = ReceiveMessageFromSocket(socket);
+                return result;
+            }
+            return null;
         }
 
         #region 设备信息字段        
