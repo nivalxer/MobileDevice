@@ -61,7 +61,7 @@ namespace MobileDevice.CoreFundation
             return (str.Handle == this._handle);
         }
 
-        internal static unsafe string FetchString(IntPtr handle)
+        internal static string FetchString(IntPtr handle)
         {
             if (handle == IntPtr.Zero)
             {
@@ -77,7 +77,8 @@ namespace MobileDevice.CoreFundation
                 CoreFoundation.CFStringGetCharacters(handle, range, zero);
                 ptr = zero;
             }
-            return new string((char*) ptr, 0, len);
+
+            return Marshal.PtrToStringUni(ptr, len);
         }
 
         ~CFString()

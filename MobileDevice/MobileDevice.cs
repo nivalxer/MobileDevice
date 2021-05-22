@@ -42,7 +42,7 @@ namespace MobileDevice
         public static extern kAMDError AFCConnectionSetSecureContext(IntPtr device, IntPtr intResult);
 
         [DllImport("iTunesMobileDevice.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int AFCConnectionOpen(int socket, uint io_timeout, ref IntPtr conn);
+        public static extern int AFCConnectionOpen(IntPtr socket, uint io_timeout, ref IntPtr conn);
 
         [DllImport("iTunesMobileDevice.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int AFCDeviceInfoOpen(IntPtr conn, ref IntPtr dict);
@@ -387,11 +387,15 @@ namespace MobileDevice
         public static extern uint ntohl(uint netlong);
         [DllImport("Ws2_32.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern int send(int inSocket, IntPtr buffer, int bufferlen, int flags);
+        [DllImport("Ws2_32.dll", CallingConvention = CallingConvention.StdCall)]
+        public static extern int send(int inSocket, byte[] buffer, int bufferlen, int flags);
         [DllImport("Ws2_32.dll", EntryPoint = "send", CallingConvention = CallingConvention.StdCall)]
         public static extern int send_UInt32(int inSocket, ref uint buffer, int bufferlen, int flags);
 
         [DllImport("Ws2_32.dll", CallingConvention = CallingConvention.StdCall, SetLastError = true)]
         public static extern int recv(int inSocket, IntPtr buffer, int bufferlen, int flags);
+        [DllImport("Ws2_32.dll", CallingConvention = CallingConvention.StdCall, SetLastError = true)]
+        public static extern int recv(int inSocket, byte[] buffer, int bufferlen, int flags);
         [DllImport("Ws2_32.dll", EntryPoint = "recv", CallingConvention = CallingConvention.StdCall)]
         public static extern int recv_UInt32(int inSocket, ref uint buffer, int bufferlen, int flags);
         [DllImport("Ws2_32.dll", CallingConvention = CallingConvention.StdCall)]

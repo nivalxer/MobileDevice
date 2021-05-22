@@ -21,32 +21,31 @@ namespace MobileDevice
         private DeviceRestoreNotificationCallback deviceRecoveryDisConnectedNotificationCallback;
         private DeviceDFUNotificationCallback deviceDFUConnectedNotificationCallback;
         private DeviceDFUNotificationCallback deviceDFUDisConnectedNotificationCallback;
-        private List<iOSDevice> currentConnectedDevice = new List<iOSDevice>();//当前链接设备
+        private List<iOSDevice> currentConnectedDevice = new List<iOSDevice>(); //当前链接设备
 
-        #region 公共变量        
+        #region 公共变量
+
         /// <summary>
         /// 普通状态链接设备
         /// </summary>
         public event DeviceCommonConnectEventHandler CommonConnectEvent;
+
         /// <summary>
         /// 恢复模式链接设备
         /// </summary>
         public event DeviceRecoveryConnectEventHandler RecoveryConnectEvent;
+
         /// <summary>
         /// 监听错误回调
         /// </summary>
         public event EventHandler<ListenErrorEventHandlerEventArgs> ListenErrorEvent;
+
         /// <summary>
         /// 获取当前已链接设备
         /// </summary>
         /// <value>The current connected device.</value>
-        public List<iOSDevice> CurrentConnectedDevice
-        {
-            get
-            {
-                return this.currentConnectedDevice;
-            }
-        }
+        public List<iOSDevice> CurrentConnectedDevice => this.currentConnectedDevice;
+
         #endregion
 
         /// <summary>
@@ -66,10 +65,9 @@ namespace MobileDevice
                             device = new iOSDevice(callback.DevicePtr);
                             this.currentConnectedDevice.Add(device);
                         }
-                        if (CommonConnectEvent != null)
-                        {
-                            CommonConnectEvent(this, new DeviceCommonConnectEventArgs(device, ConnectNotificationMessage.Connected));
-                        }
+
+                        CommonConnectEvent?.Invoke(this, new DeviceCommonConnectEventArgs(device, ConnectNotificationMessage.Connected));
+
                         break;
                     case ConnectNotificationMessage.Disconnected:
                         var disConnectDevice = FindConnectedDevice(callback.DevicePtr);
@@ -77,18 +75,17 @@ namespace MobileDevice
                         {
                             this.currentConnectedDevice.Remove(disConnectDevice);
                         }
-                        if (CommonConnectEvent != null)
-                        {
-                            CommonConnectEvent(this, new DeviceCommonConnectEventArgs(disConnectDevice, ConnectNotificationMessage.Disconnected));
-                        }
+
+                        CommonConnectEvent?.Invoke(this, new DeviceCommonConnectEventArgs(disConnectDevice, ConnectNotificationMessage.Disconnected));
+
                         break;
                     case ConnectNotificationMessage.Unknown:
                         break;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                ListenErrorEvent(this, new ListenErrorEventHandlerEventArgs(ex.Message, ListenErrorEventType.Connect));
+                ListenErrorEvent?.Invoke(this, new ListenErrorEventHandlerEventArgs(ex.Message, ListenErrorEventType.Connect));
             }
         }
 
@@ -99,7 +96,7 @@ namespace MobileDevice
         /// <returns>iOSDevice.</returns>
         private iOSDevice FindConnectedDevice(IntPtr devicePtr)
         {
-            return this.currentConnectedDevice.Where(p => p.DevicePtr == devicePtr).FirstOrDefault();
+            return this.currentConnectedDevice.FirstOrDefault(p => p.DevicePtr == devicePtr);
         }
 
         /// <summary>
@@ -108,7 +105,6 @@ namespace MobileDevice
         /// <param name="callback">The callback.</param>
         private void DfuConnectCallback(ref AMDFUModeDevice callback)
         {
-
         }
 
         /// <summary>
@@ -117,7 +113,6 @@ namespace MobileDevice
         /// <param name="callback">The callback.</param>
         private void DfuDisconnectCallback(ref AMDFUModeDevice callback)
         {
-
         }
 
         /// <summary>
@@ -126,10 +121,7 @@ namespace MobileDevice
         /// <param name="callback">The callback.</param>
         private void RecoveryConnectCallback(ref AMRecoveryDevice callback)
         {
-            if(RecoveryConnectEvent !=null)
-            {
-                RecoveryConnectEvent(this, new DeviceRecoveryConnectEventArgs(callback.devicePtr, ConnectNotificationMessage.Connected));
-            }
+            RecoveryConnectEvent?.Invoke(this, new DeviceRecoveryConnectEventArgs(callback.devicePtr, ConnectNotificationMessage.Connected));
         }
 
         /// <summary>
@@ -138,10 +130,7 @@ namespace MobileDevice
         /// <param name="callback">The callback.</param>
         private void RecoveryDisconnectCallback(ref AMRecoveryDevice callback)
         {
-            if (RecoveryConnectEvent != null)
-            {
-                RecoveryConnectEvent(this, new DeviceRecoveryConnectEventArgs(callback.devicePtr, ConnectNotificationMessage.Disconnected));
-            }
+            RecoveryConnectEvent?.Invoke(this, new DeviceRecoveryConnectEventArgs(callback.devicePtr, ConnectNotificationMessage.Disconnected));
         }
 
         /// <summary>
@@ -161,22 +150,19 @@ namespace MobileDevice
                     deviceDFUDisConnectedNotificationCallback = DfuDisconnectCallback;
                     deviceRecoveryDisConnectedNotificationCallback = RecoveryDisconnectCallback;
                     IntPtr zero = IntPtr.Zero;
-                    kAMDError error = (kAMDError)MobileDevice.AMDeviceNotificationSubscribe(this.deviceNotificationCallback, 0, 1, 0, ref zero);
+                    kAMDError error = (kAMDError) MobileDevice.AMDeviceNotificationSubscribe(this.deviceNotificationCallback, 0, 1, 0, ref zero);
                     if (error != kAMDError.kAMDSuccess)
                     {
-                        if (ListenErrorEvent != null)
-                        {
-                            ListenErrorEvent(this, new ListenErrorEventHandlerEventArgs("AMDeviceNotificationSubscribe failed with error : " + error.ToString(), ListenErrorEventType.StartListen));
-                        }
+                        //Check "Apple Mobile Device Service" status
+                        ListenErrorEvent?.Invoke(this, new ListenErrorEventHandlerEventArgs("AMDeviceNotificationSubscribe failed with error : " + error, ListenErrorEventType.StartListen));
                     }
+
                     IntPtr userInfo = IntPtr.Zero;
-                    error = (kAMDError)MobileDevice.AMRestoreRegisterForDeviceNotifications(this.deviceDFUConnectedNotificationCallback, this.deviceRecoveryConnectedNotificationCallback, this.deviceDFUDisConnectedNotificationCallback, this.deviceRecoveryDisConnectedNotificationCallback, 0, ref userInfo);
+                    error = (kAMDError) MobileDevice.AMRestoreRegisterForDeviceNotifications(this.deviceDFUConnectedNotificationCallback, this.deviceRecoveryConnectedNotificationCallback, this.deviceDFUDisConnectedNotificationCallback, this.deviceRecoveryDisConnectedNotificationCallback, 0,
+                        ref userInfo);
                     if (error != kAMDError.kAMDSuccess)
                     {
-                        if (ListenErrorEvent != null)
-                        {
-                            ListenErrorEvent(this, new ListenErrorEventHandlerEventArgs("AMRestoreRegisterForDeviceNotifications failed with error : " + error.ToString(), ListenErrorEventType.StartListen));
-                        }
+                        ListenErrorEvent?.Invoke(this, new ListenErrorEventHandlerEventArgs("AMRestoreRegisterForDeviceNotifications failed with error : " + error, ListenErrorEventType.StartListen));
                     }
                 }
                 catch (Exception ex)

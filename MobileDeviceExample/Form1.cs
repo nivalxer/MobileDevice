@@ -1,10 +1,12 @@
 ﻿using System;
-using System.Windows.Forms;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
+using System.ComponentModel;
+using System.Data;
 using System.Drawing;
-using System.Threading;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 using MobileDevice;
 using MobileDevice.Event;
 
@@ -28,9 +30,9 @@ namespace MobileDeviceExample
             manager.StartListen();
         }
 
-        private void ListenError(object sender,ListenErrorEventHandlerEventArgs args)
+        private void ListenError(object sender, ListenErrorEventHandlerEventArgs args)
         {
-            if(args.ErrorType == MobileDevice.Enumerates.ListenErrorEventType.StartListen)
+            if (args.ErrorType == MobileDevice.Enumerates.ListenErrorEventType.StartListen)
             {
                 throw new Exception(args.ErrorMessage);
             }
@@ -38,7 +40,7 @@ namespace MobileDeviceExample
 
         private void CommonConnectDevice(object sender, DeviceCommonConnectEventArgs args)
         {
-            if(args.Message == MobileDevice.Enumerates.ConnectNotificationMessage.Connected)
+            if (args.Message == MobileDevice.Enumerates.ConnectNotificationMessage.Connected)
             {
                 currentiOSDevice = args.Device;
                 this.Invoke(new Action(() =>
@@ -46,7 +48,7 @@ namespace MobileDeviceExample
                     StateLabel.Text = "设备已连接";
                 }));
             }
-            if(args.Message == MobileDevice.Enumerates.ConnectNotificationMessage.Disconnected)
+            if (args.Message == MobileDevice.Enumerates.ConnectNotificationMessage.Disconnected)
             {
                 this.Invoke(new Action(() =>
                 {

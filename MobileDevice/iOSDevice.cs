@@ -8,9 +8,12 @@ using System;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace MobileDevice
 {
@@ -20,6 +23,7 @@ namespace MobileDevice
     public class iOSDevice
     {
         #region 私有变量
+
         private bool isConnected = false;
         private bool isSessionOpen = false;
         private string activationState = string.Empty;
@@ -29,9 +33,7 @@ namespace MobileDevice
         private string bluetoothAddress = string.Empty;
         private string buildVersion = string.Empty;
         private string cpuArchitecture = string.Empty;
-        private DeviceColorKey deviceColor;
-        private string deviceColorString = string.Empty;
-        private string deviceColorBgString = string.Empty;
+        private string deviceColor = string.Empty;
         private string deviceName = string.Empty;
         private string firmwareVersion = string.Empty;
         private string hardwareModel = string.Empty;
@@ -46,24 +48,25 @@ namespace MobileDevice
         private string wiFiAddress = string.Empty;
         private string productVersion = string.Empty;
         private int versionNumber;
+
         #endregion
+
         #region 公共变量
+
         /// <summary>
         /// 当前设备链接句柄
         /// </summary>
         public IntPtr DevicePtr;
+
         /// <summary>
         /// 是否连接
         /// </summary>
         /// <value><c>true</c> if this instance is connected; otherwise, <c>false</c>.</value>
         public bool IsConnected
         {
-            get
-            {
-                return this.isConnected;
-            }
+            get { return this.isConnected; }
         }
-        
+
         #endregion
 
         /// <summary>
@@ -77,6 +80,7 @@ namespace MobileDevice
         }
 
         #region 连接与服务
+
         /// <summary>
         /// 链接到设备，用于设备链接失效或者手动推出后重链接操作，此函数只要设备还在USB树上，是无需用户插拔的
         /// </summary>
@@ -88,7 +92,7 @@ namespace MobileDevice
             {
                 if (!this.isConnected)
                 {
-                    kAMDSuccess = (kAMDError)MobileDevice.AMDeviceConnect(this.DevicePtr);
+                    kAMDSuccess = (kAMDError) MobileDevice.AMDeviceConnect(this.DevicePtr);
                     if (kAMDSuccess == kAMDError.kAMDSuccess)
                     {
                         this.isConnected = true;
@@ -99,6 +103,7 @@ namespace MobileDevice
             {
                 Console.WriteLine(exception.ToString());
             }
+
             return kAMDSuccess;
         }
 
@@ -112,12 +117,13 @@ namespace MobileDevice
             this.isConnected = false;
             try
             {
-                kAMDSuccess = (kAMDError)MobileDevice.AMDeviceDisconnect(DevicePtr);
+                kAMDSuccess = (kAMDError) MobileDevice.AMDeviceDisconnect(DevicePtr);
             }
             catch (Exception exception)
             {
                 Console.WriteLine(exception.ToString());
             }
+
             return kAMDSuccess;
         }
 
@@ -131,22 +137,24 @@ namespace MobileDevice
             kAMDError kAMDUndefinedError = kAMDError.kAMDUndefinedError;
             try
             {
-                if (this.Connect() != (int)kAMDError.kAMDSuccess)
+                if (this.Connect() != (int) kAMDError.kAMDSuccess)
                 {
                     return false;
                 }
+
                 //TODO:初始化设备信息
-                if (MobileDevice.AMDeviceValidatePairing(this.DevicePtr) != (int)kAMDError.kAMDSuccess)
+                if (MobileDevice.AMDeviceValidatePairing(this.DevicePtr) != (int) kAMDError.kAMDSuccess)
                 {
-                    kAMDUndefinedError = (kAMDError)MobileDevice.AMDevicePair(this.DevicePtr);
+                    kAMDUndefinedError = (kAMDError) MobileDevice.AMDevicePair(this.DevicePtr);
                     if (kAMDUndefinedError != kAMDError.kAMDSuccess)
                     {
                         this.Disconnect();
                         return false;
                     }
                 }
-                this.isSessionOpen = false;//确保Session已打开
-                if (this.StartSession(false) == (int)kAMDError.kAMDSuccess)
+
+                this.isSessionOpen = false; //确保Session已打开
+                if (this.StartSession(false) == (int) kAMDError.kAMDSuccess)
                 {
                     //TODO:初始化服务，填充基础数据
                     this.isConnected = true;
@@ -157,6 +165,7 @@ namespace MobileDevice
             catch
             {
             }
+
             return result;
         }
 
@@ -171,10 +180,10 @@ namespace MobileDevice
             {
                 if (!this.isSessionOpen)
                 {
-                    kAMDSuccess = (kAMDError)MobileDevice.AMDeviceStartSession(this.DevicePtr);
+                    kAMDSuccess = (kAMDError) MobileDevice.AMDeviceStartSession(this.DevicePtr);
                     if (kAMDSuccess != kAMDError.kAMDInvalidHostIDError)
                     {
-                        if (kAMDSuccess != (int)kAMDError.kAMDSuccess)
+                        if (kAMDSuccess != (int) kAMDError.kAMDSuccess)
                         {
                             //修复:Session关闭后一段时间无法再次打开的问题
                             if (!isRretry)
@@ -183,29 +192,35 @@ namespace MobileDevice
                                 this.Connect();
                                 return StartSession(true);
                             }
+
                             return kAMDSuccess;
                         }
+
                         this.isSessionOpen = true;
                         return kAMDSuccess;
                     }
-                    if ((MobileDevice.AMDeviceUnpair(this.DevicePtr) == (int)kAMDError.kAMDSuccess) &&
-                        (MobileDevice.AMDevicePair(this.DevicePtr) == (int)kAMDError.kAMDSuccess))
+
+                    if ((MobileDevice.AMDeviceUnpair(this.DevicePtr) == (int) kAMDError.kAMDSuccess) &&
+                        (MobileDevice.AMDevicePair(this.DevicePtr) == (int) kAMDError.kAMDSuccess))
                     {
-                        kAMDSuccess = (kAMDError)MobileDevice.AMDeviceStartSession(this.DevicePtr);
+                        kAMDSuccess = (kAMDError) MobileDevice.AMDeviceStartSession(this.DevicePtr);
                         if (kAMDSuccess != kAMDError.kAMDSuccess)
                         {
                             return kAMDSuccess;
                         }
+
                         this.isSessionOpen = true;
                         return kAMDSuccess;
                     }
                 }
+
                 return kAMDSuccess;
             }
             catch
             {
                 kAMDSuccess = kAMDError.kAMDUndefinedError;
             }
+
             return kAMDSuccess;
         }
 
@@ -218,7 +233,7 @@ namespace MobileDevice
             this.isSessionOpen = false;
             try
             {
-                return (kAMDError)MobileDevice.AMDeviceStopSession(this.DevicePtr);
+                return (kAMDError) MobileDevice.AMDeviceStopSession(this.DevicePtr);
             }
             catch
             {
@@ -235,20 +250,22 @@ namespace MobileDevice
         private bool StartSocketService(string serviceName, ref int serviceSocket)
         {
             var kAMDSuccess = kAMDError.kAMDSuccess;
-            if (serviceSocket > 0)//已经开启服务
+            if (serviceSocket > 0) //已经开启服务
             {
                 return true;
             }
+
             if (!this.isConnected)
             {
-                if (Connect() != (int)kAMDError.kAMDSuccess)
+                if (Connect() != (int) kAMDError.kAMDSuccess)
                 {
                     Console.WriteLine("StartService()执行Connect()失败");
                     return false;
                 }
             }
+
             bool openSession = false;
-            if(!this.isSessionOpen)
+            if (!this.isSessionOpen)
             {
                 kAMDSuccess = StartSession();
                 if (kAMDSuccess == kAMDError.kAMDSuccess)
@@ -260,21 +277,24 @@ namespace MobileDevice
                     return false;
                 }
             }
+
             var result = false;
             var zero = IntPtr.Zero;
-            if ((MobileDevice.AMDeviceSecureStartService(this.DevicePtr, CoreFoundation.StringToCFString(serviceName),IntPtr.Zero, ref zero) == (int)kAMDError.kAMDSuccess))
+            if ((MobileDevice.AMDeviceSecureStartService(this.DevicePtr, CoreFoundation.StringToCFString(serviceName), IntPtr.Zero, ref zero) == (int) kAMDError.kAMDSuccess))
             {
                 serviceSocket = MobileDevice.AMDServiceConnectionGetSocket(zero);
                 result = true;
             }
-            else if (MobileDevice.AMDeviceStartService(this.DevicePtr, CoreFoundation.StringToCFString(serviceName),ref serviceSocket, IntPtr.Zero) == (int)kAMDError.kAMDSuccess)
+            else if (MobileDevice.AMDeviceStartService(this.DevicePtr, CoreFoundation.StringToCFString(serviceName), ref serviceSocket, IntPtr.Zero) == (int) kAMDError.kAMDSuccess)
             {
                 result = true;
             }
-            if(openSession)
+
+            if (openSession)
             {
                 StopSession();
             }
+
             return result;
         }
 
@@ -290,13 +310,14 @@ namespace MobileDevice
             {
                 try
                 {
-                    kAMDSuccess = (kAMDError)MobileDevice.closesocket(socket);
+                    kAMDSuccess = (kAMDError) MobileDevice.closesocket(socket);
                 }
                 catch (Exception ex)
                 {
                     return false;
                 }
             }
+
             socket = 0;
             return kAMDSuccess != kAMDError.kAMDSuccess;
         }
@@ -307,13 +328,13 @@ namespace MobileDevice
         /// <param name="sock"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-
         public bool SendMessageToSocket(int sock, IntPtr message)
         {
             if ((sock < 1) || (message == IntPtr.Zero))
             {
                 return false;
             }
+
             var flag = false;
             var stream = CoreFoundation.CFWriteStreamCreateWithAllocatedBuffers(IntPtr.Zero, IntPtr.Zero);
             if (stream != IntPtr.Zero)
@@ -322,14 +343,15 @@ namespace MobileDevice
                 {
                     return false;
                 }
+
                 var zero = IntPtr.Zero;
-                if (CoreFoundation.CFPropertyListWriteToStream(message, stream,CFPropertyListFormat.kCFPropertyListBinaryFormat_v1_0, ref zero) > 0)
+                if (CoreFoundation.CFPropertyListWriteToStream(message, stream, CFPropertyListFormat.kCFPropertyListBinaryFormat_v1_0, ref zero) > 0)
                 {
                     var propertyName = CoreFoundation.kCFStreamPropertyDataWritten;
                     var srcRef = CoreFoundation.CFWriteStreamCopyProperty(stream, propertyName);
                     var buffer = CoreFoundation.CFDataGetBytePtr(srcRef);
                     var bufferlen = CoreFoundation.CFDataGetLength(srcRef);
-                    var structure = MobileDevice.htonl((uint)bufferlen);
+                    var structure = MobileDevice.htonl((uint) bufferlen);
                     var num3 = Marshal.SizeOf(structure);
                     if (MobileDevice.send_UInt32(sock, ref structure, num3, 0) != num3)
                     {
@@ -343,10 +365,13 @@ namespace MobileDevice
                     {
                         flag = true;
                     }
+
                     CoreFoundation.CFRelease(srcRef);
                 }
+
                 CoreFoundation.CFWriteStreamClose(stream);
             }
+
             return flag;
         }
 
@@ -374,6 +399,7 @@ namespace MobileDevice
             {
                 return null;
             }
+
             var recvCount = -1;
             uint dataSize = 0;
             uint buffer = 0;
@@ -383,26 +409,30 @@ namespace MobileDevice
             {
                 recvCount = MobileDevice.recv_UInt32(sock, ref buffer, 4, 0);
             } while (recvCount < 0);
+
             if (recvCount != 4)
             {
                 return null;
             }
-            dataSize = MobileDevice.ntohl(buffer);//获取数据总长度
+
+            dataSize = MobileDevice.ntohl(buffer); //获取数据总长度
             if (dataSize <= 0)
             {
                 Console.WriteLine("receive size error, dataSize:" + dataSize);
                 return null;
             }
-            zero = Marshal.AllocCoTaskMem((int)dataSize);
+
+            zero = Marshal.AllocCoTaskMem((int) dataSize);
             if (zero == IntPtr.Zero)
             {
                 Console.WriteLine("Could not allocate message buffer.");
                 return null;
             }
+
             var tempPtr = zero;
             while (reviceSize < dataSize)
             {
-                recvCount = MobileDevice.recv(sock, tempPtr, (int)(dataSize - reviceSize), 0);
+                recvCount = MobileDevice.recv(sock, tempPtr, (int) (dataSize - reviceSize), 0);
                 if (recvCount <= -1)
                 {
                     Console.WriteLine("Could not receive secure message: " + recvCount);
@@ -415,15 +445,17 @@ namespace MobileDevice
                         Console.WriteLine("receive size is zero. ");
                         break;
                     }
+
                     tempPtr = new IntPtr(tempPtr.ToInt64() + recvCount);
-                    reviceSize += (uint)recvCount;
+                    reviceSize += (uint) recvCount;
                 }
             }
+
             var datas = IntPtr.Zero;
             var srcRef = IntPtr.Zero;
             if (reviceSize == dataSize)
             {
-                datas = CoreFoundation.CFDataCreate(CoreFoundation.kCFAllocatorDefault, zero, (int)dataSize);
+                datas = CoreFoundation.CFDataCreate(CoreFoundation.kCFAllocatorDefault, zero, (int) dataSize);
                 if (datas == IntPtr.Zero)
                 {
                     Console.WriteLine("Could not create CFData for message");
@@ -440,6 +472,7 @@ namespace MobileDevice
                     }
                 }
             }
+
             if (datas != IntPtr.Zero)
             {
                 try
@@ -450,20 +483,127 @@ namespace MobileDevice
                 {
                 }
             }
+
             if (zero != IntPtr.Zero)
             {
                 Marshal.FreeCoTaskMem(zero);
             }
+
             var result = CoreFoundation.ManagedTypeFromCFType(ref srcRef);
             if (srcRef != IntPtr.Zero)
             {
                 CoreFoundation.CFRelease(srcRef);
             }
+
             return result;
         }
+
+        /// <summary>
+        /// 开启AFC服务
+        /// </summary>
+        /// <param name="inSocket">socket句柄</param>
+        /// <returns></returns>
+        public bool OpenConnection(int inSocket, out IntPtr connPtr)
+        {
+            connPtr = IntPtr.Zero;
+            try
+            {
+                if (MobileDevice.AFCConnectionOpen(new IntPtr(inSocket), 0, ref connPtr) == (int) kAMDError.kAMDSuccess)
+                {
+                    return true;
+                }
+            }
+            catch
+            {
+            }
+
+            return false;
+        }
+
         #endregion
 
-        #region 设备信息获取       
+        #region USBMuxConnect
+
+        /// <summary>
+        /// USBMux端口映射
+        /// </summary>
+        /// <param name="localServeIp">本地服务器IP</param>
+        /// <param name="localPort">本地监听端口</param>
+        /// <param name="remotePort">远端（iOS）端口</param>
+        public void CreateUSBMuxConnect(string localServeIp = "127.0.0.1", int localPort = 2222, uint remotePort = 22)
+        {
+            //连接打开成功，建立双向通道负责数据转发
+            Socket s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp); //创建Socket对象
+            IPAddress serverIP = IPAddress.Parse(localServeIp);
+            IPEndPoint server = new IPEndPoint(serverIP, localPort); //实例化服务器的IP和端口
+            s.Bind(server);
+            s.Listen(0);
+            int socket = 0;
+            Socket cSocket;
+            cSocket = s.Accept(); //用cSocket来代表该客户端连接
+            int ret = MobileDevice.USBMuxConnectByPort(MobileDevice.AMDeviceGetConnectionID(this.DevicePtr),
+                MobileDevice.htons(remotePort), ref socket);
+            if (ret != (int) kAMDError.kAMDSuccess)
+            {
+                //连接错误，跳出
+                throw new Exception($"USBMuxConnectByPort Error.Code:{ret}");
+            }
+
+            IntPtr conn = IntPtr.Zero;
+            if (this.OpenConnection(socket,out conn))//socket链接通过AFC函数来打开，然后剩下工作交给映射的recv和send函数，函数模型和winsock相同
+            {
+                if (cSocket.Connected) //测试是否连接成功
+                {
+                    Thread serverToRemoteThread = new Thread(() => { ConnForwardingThread(cSocket.Handle.ToInt32(), socket); });
+                    serverToRemoteThread.Start();
+                    Thread remoteToServerThread = new Thread(() => { ConnForwardingThread(socket, cSocket.Handle.ToInt32()); });
+                    remoteToServerThread.Start();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Connections the forwarding thread.
+        /// </summary>
+        /// <param name="from">From.</param>
+        /// <param name="to">To.</param>
+        private void ConnForwardingThread(int from, int to)
+        {
+            byte[] recv_buf = new byte[256];
+            int bytes_recv, bytes_send;
+
+            while (true)
+            {
+                bytes_recv = MobileDevice.recv(from, recv_buf, 256, 0);
+                if (bytes_recv == -1)
+                {
+                    //string errorMsg = new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error()).Message;//Winsock错误获取
+                    int errorno = Marshal.GetLastWin32Error();
+                    if (errorno == 10035) //10035 Socket无数据报错，可能函数原型为异步非阻塞，这里作为阻塞式调用而导致异常，可以忽略
+                    {
+                        continue;
+                    }
+
+                    MobileDevice.closesocket(from);
+                    MobileDevice.closesocket(to);
+                    break;
+                }
+
+                bytes_send = MobileDevice.send(to, recv_buf, bytes_recv, 0);
+
+                if (bytes_recv == 0 || bytes_recv == -1 || bytes_send == 0 || bytes_send == -1)
+                {
+                    MobileDevice.closesocket(from);
+                    MobileDevice.closesocket(to);
+
+                    break;
+                }
+            }
+        }
+
+        #endregion
+
+        #region 设备信息获取
 
         /// <summary>
         /// 获取设备信息
@@ -501,15 +641,17 @@ namespace MobileDevice
                 var isReOpenSession = false;
                 if (!this.isConnected)
                 {
-                    if (Connect() != (int)kAMDError.kAMDSuccess)
+                    if (Connect() != (int) kAMDError.kAMDSuccess)
                     {
                         return null;
                     }
+
                     isReconnect = true;
                 }
+
                 if (!this.isSessionOpen)
                 {
-                    if (StartSession(false) == (int)kAMDError.kAMDSuccess)
+                    if (StartSession(false) == (int) kAMDError.kAMDSuccess)
                     {
                         isReOpenSession = true;
                     }
@@ -521,11 +663,13 @@ namespace MobileDevice
                         }
                     }
                 }
+
                 resultValue = MobileDevice.AMDeviceCopyValue(this.DevicePtr, domain, key);
                 if (isReOpenSession)
                 {
                     StopSession();
                 }
+
                 if (isReconnect)
                 {
                     Disconnect();
@@ -534,6 +678,7 @@ namespace MobileDevice
             catch
             {
             }
+
             return resultValue;
         }
 
@@ -554,6 +699,7 @@ namespace MobileDevice
             catch (Exception ex)
             {
             }
+
             return -1;
         }
 
@@ -574,6 +720,7 @@ namespace MobileDevice
             catch
             {
             }
+
             return false;
         }
 
@@ -590,19 +737,22 @@ namespace MobileDevice
                 {
                     return null;
                 }
+
                 var dicResult = diagnosticsInfo as Dictionary<object, object>;
                 if (dicResult["Status"].ToString() != "Success")
                 {
                     return null;
                 }
+
                 var diagnosticsData = dicResult["Diagnostics"] as Dictionary<object, object>;
                 if (diagnosticsData == null)
                 {
                     return null;
                 }
+
                 return diagnosticsData["GasGauge"] as Dictionary<object, object>;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return null;
             }
@@ -616,21 +766,24 @@ namespace MobileDevice
         {
             int socket = 0;
             var startSocketResult = StartSocketService("com.apple.mobile.diagnostics_relay", ref socket);
-            if(!startSocketResult)
+            if (!startSocketResult)
             {
                 return null;
             }
-            var dict = new Dictionary<object,object>();
+
+            var dict = new Dictionary<object, object>();
             dict.Add("Request", "All");
             if (SendMessageToSocket(socket, dict))
             {
                 var result = ReceiveMessageFromSocket(socket);
                 return result;
             }
+
             return null;
         }
 
-        #region 设备信息字段        
+        #region 设备信息字段
+
         public string ActivationState
         {
             get
@@ -643,6 +796,7 @@ namespace MobileDevice
                         this.activationState = deviceValue.ToString();
                     }
                 }
+
                 return this.activationState;
             }
         }
@@ -659,6 +813,7 @@ namespace MobileDevice
                         this.basebandBootloaderVersion = deviceValue.ToString();
                     }
                 }
+
                 return this.basebandBootloaderVersion;
             }
         }
@@ -675,6 +830,7 @@ namespace MobileDevice
                         this.basebandSerialNumber = deviceValue.ToString();
                     }
                 }
+
                 return this.basebandSerialNumber;
             }
         }
@@ -691,6 +847,7 @@ namespace MobileDevice
                         this.basebandVersion = deviceValue.ToString();
                     }
                 }
+
                 return this.basebandVersion;
             }
         }
@@ -707,6 +864,7 @@ namespace MobileDevice
                         this.bluetoothAddress = deviceValue.ToString();
                     }
                 }
+
                 return this.bluetoothAddress;
             }
         }
@@ -723,6 +881,7 @@ namespace MobileDevice
                         this.buildVersion = deviceValue.ToString();
                     }
                 }
+
                 return this.buildVersion;
             }
         }
@@ -739,56 +898,24 @@ namespace MobileDevice
                         this.cpuArchitecture = deviceValue.ToString();
                     }
                 }
+
                 return this.cpuArchitecture;
             }
         }
 
-        public DeviceColorKey DeviceColor
+        public string DeviceColor
         {
             get
             {
-                if(this.deviceColor == DeviceColorKey.Default)
+                if (string.IsNullOrWhiteSpace(this.deviceColor))
                 {
                     var deviceColorValue = GetDeviceValue(DeviceInfoKey.DeviceColor);
                     if (deviceColorValue != null)
                     {
-                        var deviceColorString = deviceColorValue.ToString();
-                        if (!string.IsNullOrWhiteSpace(deviceColorString))
-                        {
-                            switch(deviceColorString.ToLower())
-                            {
-                                case "black":
-                                case "#99989b":
-                                case "1":
-                                    this.deviceColor = DeviceColorKey.Black;
-                                    break;
-                                case "silver":
-                                case "#d7d9d8":
-                                case "2":
-                                    this.deviceColor = DeviceColorKey.Silver;
-                                    break;
-                                case "gold":
-                                case "#d4c5b3":
-                                case "3":
-                                    this.deviceColor = DeviceColorKey.Gold;
-                                    break;
-                                case "rose gold":
-                                case "#e1ccb5":
-                                case "4":
-                                    this.deviceColor = DeviceColorKey.Rose_Gold;
-                                    break;
-                                case "jet black":
-                                case "#0a0a0a":
-                                case "5":
-                                    this.deviceColor = DeviceColorKey.Jet_Black;
-                                    break;
-                                default:
-                                    this.deviceColor = DeviceColorKey.Unknown;
-                                    break;
-                            }
-                        }
+                        this.deviceColor = deviceColorValue.ToString();
                     }
                 }
+
                 return this.deviceColor;
             }
         }
@@ -805,6 +932,7 @@ namespace MobileDevice
                         this.deviceName = deviceValue.ToString();
                     }
                 }
+
                 return this.deviceName;
             }
         }
@@ -821,6 +949,7 @@ namespace MobileDevice
                         this.firmwareVersion = deviceValue.ToString();
                     }
                 }
+
                 return this.firmwareVersion;
             }
         }
@@ -837,9 +966,11 @@ namespace MobileDevice
                         this.hardwareModel = deviceValue.ToString();
                     }
                 }
+
                 return this.hardwareModel;
             }
         }
+
         public string ModelNumber
         {
             get
@@ -852,6 +983,7 @@ namespace MobileDevice
                         this.modelNumber = deviceValue.ToString();
                     }
                 }
+
                 return this.modelNumber;
             }
         }
@@ -868,6 +1000,7 @@ namespace MobileDevice
                         this.phoneNumber = deviceValue.ToString();
                     }
                 }
+
                 return this.phoneNumber;
             }
         }
@@ -884,6 +1017,7 @@ namespace MobileDevice
                         this.productType = deviceValue.ToString();
                     }
                 }
+
                 return this.productType;
             }
         }
@@ -900,6 +1034,7 @@ namespace MobileDevice
                         this.integratedCircuitCardIdentity = deviceValue.ToString();
                     }
                 }
+
                 return this.integratedCircuitCardIdentity;
             }
         }
@@ -916,6 +1051,7 @@ namespace MobileDevice
                         this.internationalMobileEquipmentIdentity = deviceValue.ToString();
                     }
                 }
+
                 return this.internationalMobileEquipmentIdentity;
             }
         }
@@ -932,6 +1068,7 @@ namespace MobileDevice
                         this.serialNumber = deviceValue.ToString();
                     }
                 }
+
                 return this.serialNumber;
             }
         }
@@ -948,6 +1085,7 @@ namespace MobileDevice
                         this.simStatus = deviceValue.ToString();
                     }
                 }
+
                 return this.simStatus;
             }
         }
@@ -964,6 +1102,7 @@ namespace MobileDevice
                         this.uniqueDeviceID = deviceValue.ToString();
                     }
                 }
+
                 return this.uniqueDeviceID;
             }
         }
@@ -980,9 +1119,11 @@ namespace MobileDevice
                         this.wiFiAddress = deviceValue.ToString();
                     }
                 }
+
                 return this.wiFiAddress;
             }
         }
+
         public string ProductVersion
         {
             get
@@ -991,6 +1132,7 @@ namespace MobileDevice
                 {
                     this.productVersion = Convert.ToString(this.GetDeviceValue(DeviceInfoKey.ProductVersion)) + string.Empty;
                 }
+
                 return this.productVersion;
             }
         }
@@ -1003,6 +1145,7 @@ namespace MobileDevice
                 {
                     this.versionNumber = Convert.ToInt32(this.ProductVersion.Replace(".", string.Empty).PadRight(3, '0'));
                 }
+
                 return this.versionNumber;
             }
         }
@@ -1029,10 +1172,13 @@ namespace MobileDevice
                         CoreFoundation.CFRelease(zero);
                     }
                 }
+
                 return str;
             }
         }
+
         #endregion
+
         #endregion
     }
 }
