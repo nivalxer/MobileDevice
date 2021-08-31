@@ -1,4 +1,5 @@
-﻿namespace MobileDeviceExample
+﻿
+namespace MobileDeviceExample
 {
     partial class Form1
     {

@@ -24,23 +24,26 @@ namespace MobileDevice.Helper
                 if (!string.IsNullOrWhiteSpace(path))
                 {
                     FileInfo file = new FileInfo(path);
-                    if(file.Exists)
+                    if (file.Exists)
                     {
                         return file.DirectoryName;
                     }
                 }
             }
+
             //判断常用路径
-            string directory = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles) + @"\Apple\Mobile Device Support";//判断64位
+            string directory = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles) + @"\Apple\Mobile Device Support"; //判断64位
             if (File.Exists(directory + @"\iTunesMobileDevice.dll"))
             {
                 return directory;
             }
-            directory = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFilesX86) + @"\Apple\Mobile Device Support";//针对老版本的iTunes64位
+
+            directory = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFilesX86) + @"\Apple\Mobile Device Support"; //针对老版本的iTunes64位
             if (File.Exists(directory + @"\iTunesMobileDevice.dll"))
             {
                 return directory;
             }
+
             return string.Empty;
         }
 
@@ -60,17 +63,20 @@ namespace MobileDevice.Helper
                     return path;
                 }
             }
+
             //判断常用路径
-            string directory = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles) + @"\Apple\Apple Application Support\";//判断64位
+            string directory = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles) + @"\Apple\Apple Application Support\"; //判断64位
             if (!File.Exists(directory + @"\CoreFoundation.dll"))
             {
                 return directory;
             }
-            directory = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFilesX86) + @"\Apple\Apple Application Support\";//针对老版本的iTunes64位
+
+            directory = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFilesX86) + @"\Apple\Apple Application Support\"; //针对老版本的iTunes64位
             if (!File.Exists(directory + @"\CoreFoundation.dll"))
             {
                 return directory;
             }
+
             return string.Empty;
         }
     }
