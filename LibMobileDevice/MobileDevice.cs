@@ -77,7 +77,7 @@ namespace LibMobileDevice
         public static extern int AMDServiceConnectionGetSocket(IntPtr socket);
 
         [DllImport("MobileDevice.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int AMDServiceConnectionGetSecureIOContext(IntPtr socket);
+        public static extern IntPtr AMDServiceConnectionGetSecureIOContext(IntPtr socket);
 
         [DllImport("MobileDevice.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int AMDeviceLookupApplicationArchives(IntPtr conn, IntPtr AppType, ref IntPtr result);
@@ -409,10 +409,10 @@ namespace LibMobileDevice
         public static extern int AMDServiceConnectionReceive_UInt32(int inSocket, ref uint buffer, int bufferlen);
 
         [DllImport("MobileDevice.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int AMDServiceConnectionSend(int inSocket, IntPtr buffer, int bufferlen);
+        public static extern int AMDServiceConnectionSend(IntPtr inSocket, IntPtr buffer, int bufferlen);
 
         [DllImport("MobileDevice.dll", EntryPoint = "AMDServiceConnectionSend", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int AMDServiceConnectionSend_UInt32(int inSocket, ref uint buffer, int bufferlen);
+        public static extern int AMDServiceConnectionSend_UInt32(IntPtr inSocket, ref uint buffer, int bufferlen);
 
         [DllImport("MobileDevice.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int USBMuxConnectByPort(int connectionID, uint iPhone_port_network_byte_order, ref int outSocket);

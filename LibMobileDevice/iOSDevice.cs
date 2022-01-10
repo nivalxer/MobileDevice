@@ -55,6 +55,13 @@ namespace LibMobileDevice
         /// </summary>
         public IntPtr DevicePtr;
 
+        public IntPtr SocketContext;
+
+        /// <summary>
+        /// SSL Context
+        /// </summary>
+        public IntPtr DeviceSecureIOContext;
+
         /// <summary>
         /// 是否连接
         /// </summary>
@@ -246,7 +253,6 @@ namespace LibMobileDevice
         /// <returns></returns>
         private bool StartSocketService(string serviceName, ref int serviceSocket)
         {
-            var kAMDSuccess = kAMDError.kAMDSuccess;
             if (serviceSocket > 0) //已经开启服务
             {
                 return true;
@@ -264,7 +270,7 @@ namespace LibMobileDevice
             bool openSession = false;
             if (!isSessionOpen)
             {
-                kAMDSuccess = StartSession();
+                var kAMDSuccess = StartSession();
                 if (kAMDSuccess == kAMDError.kAMDSuccess)
                 {
                     openSession = true;
@@ -280,6 +286,11 @@ namespace LibMobileDevice
             if (MobileDevice.AMDeviceSecureStartService(DevicePtr, CoreFoundation.StringToCFString(serviceName), IntPtr.Zero, ref zero) == (int)kAMDError.kAMDSuccess)
             {
                 serviceSocket = MobileDevice.AMDServiceConnectionGetSocket(zero);
+                if (serviceSocket > 0)
+                {
+                    SocketContext = zero;
+                    DeviceSecureIOContext = MobileDevice.AMDServiceConnectionGetSecureIOContext(zero);
+                }
                 result = true;
             }
             else if (MobileDevice.AMDeviceStartService(DevicePtr, CoreFoundation.StringToCFString(serviceName), ref serviceSocket, IntPtr.Zero) == (int)kAMDError.kAMDSuccess)
@@ -349,13 +360,28 @@ namespace LibMobileDevice
                     var bufferlen = CoreFoundation.CFDataGetLength(srcRef);
                     var structure = MobileDevice.htonl((uint)bufferlen);
                     var structureSize = Marshal.SizeOf(structure);
-                    if (MobileDevice.send_UInt32(sock, ref structure, structureSize, 0) != structureSize)
+                    if (DeviceSecureIOContext == IntPtr.Zero || SocketContext == IntPtr.Zero)
+                    {
+                        if (MobileDevice.send_UInt32(sock, ref structure, structureSize, 0) != structureSize)
+                        {
+                            Console.WriteLine("could not send message size");
+                        }
+                        else if (MobileDevice.send(sock, buffer, bufferlen, 0) != bufferlen)
+                        {
+                            Console.WriteLine("Could not send message.");
+                        }
+                        else
+                        {
+                            flag = true;
+                        }
+                    }
+                    else if (MobileDevice.AMDServiceConnectionSend_UInt32(SocketContext, ref structure, structureSize) != structureSize)
+                    {
+                        Console.WriteLine("could not send message size with socket");
+                    }
+                    else if (MobileDevice.AMDServiceConnectionSend(SocketContext, buffer, bufferlen) != bufferlen)
                     {
                         Console.WriteLine("could not send message size");
-                    }
-                    else if (MobileDevice.send(sock, buffer, bufferlen, 0) != bufferlen)
-                    {
-                        Console.WriteLine("Could not send message.");
                     }
                     else
                     {
@@ -398,42 +424,80 @@ namespace LibMobileDevice
             int recvCount;
             uint buffer = 0;
             uint reviceSize = 0;
-            if (MobileDevice.recv_UInt(sock, ref buffer, 4, 0) != 4)
+            uint dataSize = 0;
+            IntPtr zero = IntPtr.Zero;
+            if (DeviceSecureIOContext != IntPtr.Zero && SocketContext != IntPtr.Zero)
             {
-                return null;
-            }
-
-            var dataSize = MobileDevice.ntohl(buffer); //获取数据总长度
-            if (dataSize <= 0)
-            {
-                Console.WriteLine("receive size error, dataSize:" + dataSize);
-                return null;
-            }
-
-            IntPtr zero = Marshal.AllocCoTaskMem((int)dataSize);
-            if (zero == IntPtr.Zero)
-            {
-                Console.WriteLine("Could not allocate message buffer.");
-                return null;
-            }
-
-            var tempPtr = zero;
-            while (reviceSize < dataSize)
-            {
-                recvCount = MobileDevice.recv(sock, tempPtr, (int)(dataSize - reviceSize), 0);
-                if (recvCount <= -1)
+                if (MobileDevice.AMDServiceConnectionReceive(SocketContext, ref buffer, 4) == 4)
                 {
-                    Console.WriteLine("Could not receive secure message: " + recvCount);
-                    reviceSize = dataSize + 1;
+                    dataSize = MobileDevice.ntohl(buffer); //获取数据总长度
+                    if (dataSize <= 0)
+                    {
+                        Console.WriteLine("receive size error, dataSize:" + dataSize);
+                        return null;
+                    }
+
+                    zero = Marshal.AllocCoTaskMem((int)dataSize);
+                    if (zero == IntPtr.Zero)
+                    {
+                        Console.WriteLine("Could not allocate message buffer.");
+                        return null;
+                    }
+
+                    var tempPtr = zero;
+                    while (reviceSize < dataSize)
+                    {
+                        recvCount = MobileDevice.AMDServiceConnectionReceive_1(SocketContext, tempPtr, (int)(dataSize - reviceSize));
+                        if (recvCount <= -1)
+                        {
+                            Console.WriteLine("Could not receive secure message: " + recvCount);
+                            reviceSize = dataSize + 1;
+                        }
+                        else if (recvCount == 0)
+                        {
+                            Console.WriteLine("receive size is zero. ");
+                            break;
+                        }
+
+                        tempPtr = new IntPtr(tempPtr.ToInt64() + recvCount);
+                        reviceSize += (uint)recvCount;
+                    }
                 }
-                else if (recvCount == 0)
+            }
+            else if (MobileDevice.recv_UInt(sock, ref buffer, 4, 0) == 4)
+            {
+                dataSize = MobileDevice.ntohl(buffer); //获取数据总长度
+                if (dataSize <= 0)
                 {
-                    Console.WriteLine("receive size is zero. ");
-                    break;
+                    Console.WriteLine("receive size error, dataSize:" + dataSize);
+                    return null;
+                }
+                
+                zero = Marshal.AllocCoTaskMem((int)dataSize);
+                if (zero == IntPtr.Zero)
+                {
+                    Console.WriteLine("Could not allocate message buffer.");
+                    return null;
                 }
 
-                tempPtr = new IntPtr(tempPtr.ToInt64() + recvCount);
-                reviceSize += (uint)recvCount;
+                var tempPtr = zero;
+                while (reviceSize < dataSize)
+                {
+                    recvCount = MobileDevice.recv(sock, tempPtr, (int)(dataSize - reviceSize), 0);
+                    if (recvCount <= -1)
+                    {
+                        Console.WriteLine("Could not receive secure message: " + recvCount);
+                        reviceSize = dataSize + 1;
+                    }
+                    else if (recvCount == 0)
+                    {
+                        Console.WriteLine("receive size is zero. ");
+                        break;
+                    }
+
+                    tempPtr = new IntPtr(tempPtr.ToInt64() + recvCount);
+                    reviceSize += (uint)recvCount;
+                }
             }
 
             var datas = IntPtr.Zero;
