@@ -417,34 +417,34 @@ namespace LibMobileDevice
         [DllImport("MobileDevice.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int USBMuxConnectByPort(int connectionID, uint iPhone_port_network_byte_order, ref int outSocket);
 
-        [DllImport("Ws2_32.dll", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("Ws2_32.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint htonl(uint hostlong);
 
-        [DllImport("Ws2_32.dll", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("Ws2_32.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint htons(uint hostshort);
 
-        [DllImport("Ws2_32.dll", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("Ws2_32.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint ntohl(uint netlong);
 
-        [DllImport("Ws2_32.dll", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("Ws2_32.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int send(int inSocket, IntPtr buffer, int bufferlen, int flags);
 
-        [DllImport("Ws2_32.dll", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("Ws2_32.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int send(int inSocket, byte[] buffer, int bufferlen, int flags);
 
-        [DllImport("Ws2_32.dll", EntryPoint = "send", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("Ws2_32.dll", EntryPoint = "send", CallingConvention = CallingConvention.Cdecl)]
         public static extern int send_UInt32(int inSocket, ref uint buffer, int bufferlen, int flags);
 
-        [DllImport("Ws2_32.dll", CallingConvention = CallingConvention.StdCall, SetLastError = true)]
+        [DllImport("Ws2_32.dll", CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
         public static extern int recv(int inSocket, IntPtr buffer, int bufferlen, int flags);
 
-        [DllImport("Ws2_32.dll", CallingConvention = CallingConvention.StdCall, SetLastError = true)]
+        [DllImport("Ws2_32.dll", CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
         public static extern int recv(int inSocket, byte[] buffer, int bufferlen, int flags);
 
-        [DllImport("Ws2_32.dll", EntryPoint = "recv", CallingConvention = CallingConvention.StdCall)]
-        public static extern int recv_UInt32(int inSocket, ref uint buffer, int bufferlen, int flags);
+        [DllImport("Ws2_32.dll", EntryPoint = "recv", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int recv_UInt(int inSocket, ref uint buffer, int bufferlen, int flags);
 
-        [DllImport("Ws2_32.dll", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("Ws2_32.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int closesocket(int inSocket);
 
         public static IntPtr ATCFMessageCreate(int sesssion, string strMessageType, Dictionary<object, object> dictParams)

@@ -21,15 +21,11 @@ namespace LibMobileDevice.CoreFundation
         public static IntPtr kCFTypeArrayCallBacks = IntPtr.Zero;
         public static IntPtr kCFTypeDictionaryKeyCallBacks = IntPtr.Zero;
         public static IntPtr kCFTypeDictionaryValueCallBacks = IntPtr.Zero;
-        private static int mBindDeviceGrappaFuncOffsetAddress = 0;
-        private static int mCreateHostGrappaFuncOffsetAddress = 0;
-        private static Dictionary<string, int> mDictiTunesDllOffset = null;
-        private static int mFuncOffsetAddress = 0;
-        private static int mGrappaID = 0;
-        private static string AppleMobileDeviceSupportPath = string.Empty;
+        private static IntPtr coreFundationDllIntPtr;
 
         static CoreFoundation()
         {
+            coreFundationDllIntPtr = LoadLibrary("CoreFoundation.dll");
             kCFStreamPropertyDataWritten = EnumToCFEnum("kCFStreamPropertyDataWritten");
             kCFTypeDictionaryKeyCallBacks = ConstToCFConst("kCFTypeDictionaryKeyCallBacks");
             kCFTypeDictionaryValueCallBacks = ConstToCFConst("kCFTypeDictionaryValueCallBacks");
@@ -38,43 +34,28 @@ namespace LibMobileDevice.CoreFundation
             kCFBooleanTrue = CFBoolean.GetCFBoolean(true);
         }
 
-        internal static IntPtr EnumToCFStreamPropertyDataWritten()
-        {
-            if (kCFStreamPropertyDataWritten == IntPtr.Zero)
-            {
-                IntPtr handle = GetModuleHandle("CoreFoundation.dll");
-                if (handle == IntPtr.Zero)
-                {
-                    kCFStreamPropertyDataWritten = Marshal.ReadIntPtr(kCFStreamPropertyDataWritten, 0);
-                }
-                else
-                {
-                    kCFStreamPropertyDataWritten = GetProcAddress(handle, "kCFStreamPropertyDataWritten");
-                }
-            }
-            return kCFStreamPropertyDataWritten;
-        }
-
         internal static IntPtr EnumToCFEnum(string enmName)
         {
             IntPtr zero = IntPtr.Zero;
-            IntPtr handle = GetModuleHandle("CoreFoundation.dll");
-            if (handle != IntPtr.Zero)
+            if (coreFundationDllIntPtr != IntPtr.Zero)
             {
-                zero = GetProcAddress(handle, enmName);
+                zero = GetProcAddress(coreFundationDllIntPtr, enmName);
             }
-            return Marshal.ReadIntPtr(zero, 0);
+            if (zero != IntPtr.Zero)
+            {
+                zero = Marshal.ReadIntPtr(zero, 0);
+            }
+            return zero;
         }
 
         public static IntPtr ConstToCFConst(string constName)
         {
             IntPtr zero = IntPtr.Zero;
-            IntPtr handle = GetModuleHandle("CoreFoundation.dll");
-            if (handle != IntPtr.Zero)
+            if (coreFundationDllIntPtr != IntPtr.Zero)
             {
-                zero = GetProcAddress(handle, constName);
+                zero = GetProcAddress(coreFundationDllIntPtr, constName);
             }
-            return Marshal.ReadIntPtr(zero, 0);
+            return zero;
         }
 
         public static string CreatePlistString(object objPlist)
@@ -107,8 +88,9 @@ namespace LibMobileDevice.CoreFundation
             }
             return str;
         }
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        public static extern IntPtr GetModuleHandle(string lpModuleName);
+
+        [DllImport("Kernel32.dll")]
+        public static extern IntPtr LoadLibrary(string lpFileName);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
@@ -135,7 +117,7 @@ namespace LibMobileDevice.CoreFundation
         internal static extern IntPtr CFDateCreate(IntPtr intptr_2, double double_0);
 
         [DllImport("CoreFoundation.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern IntPtr CFDataCreate(IntPtr intptr_2, IntPtr intptr_3, int int_1);
+        internal static extern IntPtr CFDataCreate(IntPtr allocator, IntPtr bytes, int length);
 
         [DllImport("CoreFoundation.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool CFBooleanGetValue(IntPtr sourceRef);
@@ -283,17 +265,13 @@ namespace LibMobileDevice.CoreFundation
                 }
                 if (type == typeof(DateTime))
                 {
-                    string firstDate = new DateTime(0x7d1, 1, 1, 0, 0, 0, 0).ToString();
-                    string secondDate = Convert.ToString(objVal);
-                    double diff = DateAndTime.DateDiff("s", firstDate, secondDate);
-                    return CFDateCreate(kCFAllocatorDefault, diff);
+                    return CFDateCreate(kCFAllocatorDefault, ((DateTime)objVal).Subtract(new DateTime(0x7d1, 1, 1, 0, 0, 0)).TotalSeconds);
                 }
                 if (type == typeof(byte[]))
                 {
-                    byte[] arr = objVal as byte[];
+                    byte[] arr = (byte[])objVal;
                     IntPtr ptrDest = Marshal.UnsafeAddrOfPinnedArrayElement(arr, 0);
-                    zero = CFDataCreateMutable(kCFAllocatorDefault, (uint)arr.Length);
-                    CFDataAppendBytes(zero, ptrDest, (uint)arr.Length);
+                    zero = CFDataCreate(IntPtr.Zero, ptrDest, arr.Length);
                     return zero;
                 }
                 if (type == typeof(object[]))
@@ -863,11 +841,13 @@ namespace LibMobileDevice.CoreFundation
             if (values != null)
             {
                 byte[] bytes = Encoding.UTF8.GetBytes(values);
-                int length = bytes.Length;
-                IntPtr allocator = CFDataCreateMutable(IntPtr.Zero, (uint)length);
                 IntPtr ptrDest = Marshal.UnsafeAddrOfPinnedArrayElement(bytes, 0);
-                CFDataAppendBytes(allocator, ptrDest, (uint)length);
-                zero = CFStringCreateFromExternalRepresentation(IntPtr.Zero, allocator, (CFStringEncoding)0x8000100);
+                IntPtr cfData = CFDataCreate(IntPtr.Zero, ptrDest, bytes.Length);
+                zero = CFStringCreateFromExternalRepresentation(IntPtr.Zero, cfData, (CFStringEncoding)0x8000100);
+                if (cfData != IntPtr.Zero)
+                {
+                    CFRelease(cfData);
+                }
             }
             return zero;
         }

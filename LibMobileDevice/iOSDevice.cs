@@ -344,13 +344,12 @@ namespace LibMobileDevice
                 var zero = IntPtr.Zero;
                 if (CoreFoundation.CFPropertyListWriteToStream(message, stream, CFPropertyListFormat.kCFPropertyListBinaryFormat_v1_0, ref zero) > 0)
                 {
-                    var propertyName = CoreFoundation.kCFStreamPropertyDataWritten;
-                    var srcRef = CoreFoundation.CFWriteStreamCopyProperty(stream, propertyName);
-                    var buffer = CoreFoundation.CFDataGetBytePtr(srcRef);
+                    IntPtr srcRef = CoreFoundation.CFWriteStreamCopyProperty(stream, CoreFoundation.kCFStreamPropertyDataWritten);
+                    IntPtr buffer = CoreFoundation.CFDataGetBytePtr(srcRef);
                     var bufferlen = CoreFoundation.CFDataGetLength(srcRef);
                     var structure = MobileDevice.htonl((uint)bufferlen);
-                    var num3 = Marshal.SizeOf(structure);
-                    if (MobileDevice.send_UInt32(sock, ref structure, num3, 0) != num3)
+                    var structureSize = Marshal.SizeOf(structure);
+                    if (MobileDevice.send_UInt32(sock, ref structure, structureSize, 0) != structureSize)
                     {
                         Console.WriteLine("could not send message size");
                     }
@@ -380,7 +379,7 @@ namespace LibMobileDevice
         /// <returns></returns>
         public bool SendMessageToSocket(int sock, object dict)
         {
-            var message = CoreFoundation.CFTypeFromManagedType(RuntimeHelpers.GetObjectValue(dict));
+            var message = CoreFoundation.CFTypeFromManagedType(dict);
             return SendMessageToSocket(sock, message);
         }
 
@@ -388,7 +387,6 @@ namespace LibMobileDevice
         /// 接收Socket消息，主要为接收设备返回的指令结果，大部分为Plist，所以函数内将会自行作转换
         /// </summary>
         /// <param name="sock"></param>
-        /// <param name="dict"></param>
         /// <returns></returns>
         public object ReceiveMessageFromSocket(int sock)
         {
@@ -397,29 +395,22 @@ namespace LibMobileDevice
                 return null;
             }
 
-            var recvCount = -1;
-            uint dataSize = 0;
+            int recvCount;
             uint buffer = 0;
             uint reviceSize = 0;
-            var zero = IntPtr.Zero;
-            do
-            {
-                recvCount = MobileDevice.recv_UInt32(sock, ref buffer, 4, 0);
-            } while (recvCount < 0);
-
-            if (recvCount != 4)
+            if (MobileDevice.recv_UInt(sock, ref buffer, 4, 0) != 4)
             {
                 return null;
             }
 
-            dataSize = MobileDevice.ntohl(buffer); //获取数据总长度
+            var dataSize = MobileDevice.ntohl(buffer); //获取数据总长度
             if (dataSize <= 0)
             {
                 Console.WriteLine("receive size error, dataSize:" + dataSize);
                 return null;
             }
 
-            zero = Marshal.AllocCoTaskMem((int)dataSize);
+            IntPtr zero = Marshal.AllocCoTaskMem((int)dataSize);
             if (zero == IntPtr.Zero)
             {
                 Console.WriteLine("Could not allocate message buffer.");
@@ -435,17 +426,14 @@ namespace LibMobileDevice
                     Console.WriteLine("Could not receive secure message: " + recvCount);
                     reviceSize = dataSize + 1;
                 }
-                else
+                else if (recvCount == 0)
                 {
-                    if (recvCount == 0)
-                    {
-                        Console.WriteLine("receive size is zero. ");
-                        break;
-                    }
-
-                    tempPtr = new IntPtr(tempPtr.ToInt64() + recvCount);
-                    reviceSize += (uint)recvCount;
+                    Console.WriteLine("receive size is zero. ");
+                    break;
                 }
+
+                tempPtr = new IntPtr(tempPtr.ToInt64() + recvCount);
+                reviceSize += (uint)recvCount;
             }
 
             var datas = IntPtr.Zero;
@@ -729,7 +717,7 @@ namespace LibMobileDevice
         {
             try
             {
-                var diagnosticsInfo = GetDiagnosticsInfo();
+                var diagnosticsInfo = GetBatteryInfo();
                 if (diagnosticsInfo == null)
                 {
                     return null;
@@ -747,7 +735,7 @@ namespace LibMobileDevice
                     return null;
                 }
 
-                return diagnosticsData["GasGauge"] as Dictionary<object, object>;
+                return diagnosticsData["IORegistry"] as Dictionary<object, object>;
             }
             catch (Exception ex)
             {
@@ -756,10 +744,10 @@ namespace LibMobileDevice
         }
 
         /// <summary>
-        /// 获取诊断信息
+        /// 获取电池信息
         /// </summary>
         /// <returns></returns>
-        public object GetDiagnosticsInfo()
+        public object GetBatteryInfo()
         {
             int socket = 0;
             var startSocketResult = StartSocketService("com.apple.mobile.diagnostics_relay", ref socket);
@@ -768,8 +756,17 @@ namespace LibMobileDevice
                 return null;
             }
 
-            var dict = new Dictionary<object, object>();
-            dict.Add("Request", "All");
+            var dict = new Dictionary<object, object>
+            {
+                {
+                    "Request",
+                    "IORegistry"
+                },
+                {
+                    "EntryClass",
+                    "IOPMPowerSource"
+                }
+            };
             if (SendMessageToSocket(socket, dict))
             {
                 var result = ReceiveMessageFromSocket(socket);
