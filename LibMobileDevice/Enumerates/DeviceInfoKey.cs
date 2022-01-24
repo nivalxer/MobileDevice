@@ -53,7 +53,7 @@ namespace LibMobileDevice.Enumerates
         IMLockdownEverRegisteredKey,
         [Description("ICCID")]
         IntegratedCircuitCardIdentity,
-        [Description("IMEI码")]
+        [Description("卡1-IMEI码")]
         InternationalMobileEquipmentIdentity,
         [Description("IMSI码")]
         InternationalMobileSubscriberIdentity,
@@ -126,8 +126,11 @@ namespace LibMobileDevice.Enumerates
          * added by vaske
          */
         ActivationInfo,
+        [Description("卡2-IMEI码")]
         InternationalMobileEquipmentIdentity2,
+        [Description("MEID")]
         MobileEquipmentIdentifier,
+        [Description("SIM卡槽状态")]
         SIMTrayStatus
     }
 }

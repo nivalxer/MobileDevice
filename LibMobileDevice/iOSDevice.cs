@@ -968,7 +968,7 @@ namespace LibMobileDevice
                     object deviceValue = GetDeviceValue(DeviceInfoKey.BasebandSerialNumber);
                     if (deviceValue != null)
                     {
-                        basebandSerialNumber = deviceValue.ToString();
+                        basebandSerialNumber = Convert.ToBase64String(deviceValue as byte[] ?? new byte[] { });
                     }
                 }
 
