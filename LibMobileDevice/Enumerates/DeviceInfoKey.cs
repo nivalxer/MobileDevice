@@ -111,7 +111,7 @@ namespace LibMobileDevice.Enumerates
         [Description("键盘")]
         Keyboard,
         [Description("AppleID")]
-        AppleID,
+        AppleID, 
         CallsInProgress,
         IOSDIOManufacturerID,
         IOSDIOProductID,
@@ -121,6 +121,13 @@ namespace LibMobileDevice.Enumerates
         ActivationStateAcknowledged,
         iTunesHasConnected,
         [Description("SIM卡状态")]
-        SIMStatus
+        SIMStatus,
+        /*
+         * added by vaske
+         */
+        ActivationInfo,
+        InternationalMobileEquipmentIdentity2,
+        MobileEquipmentIdentifier,
+        SIMTrayStatus
     }
 }

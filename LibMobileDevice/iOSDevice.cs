@@ -27,7 +27,7 @@ namespace LibMobileDevice
         private string basebandBootloaderVersion = string.Empty;
         private string basebandSerialNumber = string.Empty;
         private string basebandVersion = string.Empty;
-        private string bluetoothAddress = string.Empty;
+        private string bluetoothAddress = string.Empty; 
         private string buildVersion = string.Empty;
         private string cpuArchitecture = string.Empty;
         private string deviceColor = string.Empty;
@@ -45,7 +45,18 @@ namespace LibMobileDevice
         private string wiFiAddress = string.Empty;
         private string productVersion = string.Empty;
         private int versionNumber;
-
+        /*
+         * added by vaske
+         */
+        private string BBStatus = string.Empty;
+        private string deviceClass = string.Empty;
+        private Dictionary<object, object> activationXml;
+        private string deviceColorString = string.Empty;
+        private string deviceColorBgString = string.Empty;
+        private string internationalMobileEquipmentIdentity2 = string.Empty;
+        private string model = string.Empty;
+        private string mobileEquipmentIdentifier = string.Empty;
+        
         #endregion
 
         #region 公共变量
@@ -842,6 +853,78 @@ namespace LibMobileDevice
 
         #region 设备信息字段
 
+        public string MobileEquipmentIdentifier
+        {
+            get
+            {
+                if (mobileEquipmentIdentifier.Length == 0)
+                {
+                    object deviceValue = GetDeviceValue(DeviceInfoKey.MobileEquipmentIdentifier);
+                    if (deviceValue != null)
+                    {
+                        mobileEquipmentIdentifier = deviceValue.ToString();
+                    }
+                }
+                return mobileEquipmentIdentifier;
+            }
+            set
+            {
+                mobileEquipmentIdentifier = MobileEquipmentIdentifier;
+            }
+        }
+
+        public string InternationalMobileEquipmentIdentity2
+        {
+            get
+            {
+                if (internationalMobileEquipmentIdentity2.Length == 0)
+                {
+                    object deviceValue = GetDeviceValue(DeviceInfoKey.InternationalMobileEquipmentIdentity2);
+                    if (deviceValue != null)
+                    {
+                        internationalMobileEquipmentIdentity2 = deviceValue.ToString();
+                    }
+                }
+                return internationalMobileEquipmentIdentity2;
+            }
+            set
+            {
+                internationalMobileEquipmentIdentity2 = InternationalMobileEquipmentIdentity2;
+            }
+        }
+
+        public string BasebandStatus
+        {
+            get
+            {
+                if (this.BBStatus.Length == 0)
+                {
+                    object deviceValue = this.GetDeviceValue(DeviceInfoKey.BasebandStatus);
+                    if (deviceValue != null)
+                    {
+                        this.BBStatus = deviceValue.ToString();
+                    }
+                }
+                return this.BBStatus;
+            }
+        }
+
+        public string DeviceClass
+        {
+            get
+            {
+                if (this.deviceClass.Length == 0)
+                {
+                    object deviceValue = this.GetDeviceValue(DeviceInfoKey.DeviceClass);
+                    if (deviceValue != null)
+                    {
+                        this.deviceClass = deviceValue.ToString();
+                    }
+                }
+                return this.deviceClass;
+            }
+        }
+
         public string ActivationState
         {
             get
@@ -1234,6 +1317,8 @@ namespace LibMobileDevice
                 return str;
             }
         }
+
+
 
         #endregion
 
