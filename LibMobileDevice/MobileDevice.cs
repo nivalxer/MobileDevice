@@ -18,12 +18,26 @@ namespace LibMobileDevice
     {
         static MobileDevice()
         {
-            string mobileDeviceDirectoryName = Helper.DLLHelper.GetiTunesMobileDeviceDllPath();
-            if (!string.IsNullOrWhiteSpace(mobileDeviceDirectoryName))
+            NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(), DllImportResolver);
+            //string mobileDeviceDirectoryName = Helper.DLLHelper.GetiTunesMobileDeviceDllPath();
+            //if (!string.IsNullOrWhiteSpace(mobileDeviceDirectoryName))
+            //{
+            //    Environment.SetEnvironmentVariable("Path", string.Join(";", new[]
+            //        {Environment.GetEnvironmentVariable("Path"), mobileDeviceDirectoryName}));
+            //}
+        }
+
+        public static IntPtr DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
+        {
+            if (libraryName == "CoreFoundation.dll" || libraryName == "MobileDevice.dll")
             {
-                Environment.SetEnvironmentVariable("Path", string.Join(";", new[]
-                    {Environment.GetEnvironmentVariable("Path"), mobileDeviceDirectoryName}));
+                //string arch = Environment.Is64BitProcess ? "x64" : "x86";
+                string mobileDeviceDirectoryName = Helper.DLLHelper.GetiTunesMobileDeviceDllPath();
+                var fullPath = Path.Combine(mobileDeviceDirectoryName, libraryName);
+                return NativeLibrary.Load(fullPath, assembly, searchPath);
             }
+
+            return NativeLibrary.Load(libraryName);
         }
 
         [DllImport("MobileDevice.dll", CallingConvention = CallingConvention.Cdecl)]

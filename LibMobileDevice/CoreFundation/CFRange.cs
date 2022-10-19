@@ -1,15 +1,20 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 
 namespace LibMobileDevice.CoreFundation
 {
     [StructLayout(LayoutKind.Sequential)]
     internal struct CFRange
     {
-        internal long Location;
-        internal long Length;
-        internal CFRange(int l, int len)
+        internal IntPtr Location, Length;
+
+        internal CFRange(int location, int len) : this((IntPtr) location, (IntPtr) len)
         {
-            Location = l;
+        }
+
+        internal CFRange(IntPtr location, IntPtr len)
+        {
+            Location = location;
             Length = len;
         }
     }
