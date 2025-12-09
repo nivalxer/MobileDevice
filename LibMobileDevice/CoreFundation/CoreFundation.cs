@@ -5,8 +5,8 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
+//using Microsoft.VisualBasic;
+//using Microsoft.VisualBasic.CompilerServices;
 using Microsoft.Win32;
 
 namespace LibMobileDevice.CoreFundation
@@ -816,7 +816,7 @@ namespace LibMobileDevice.CoreFundation
             return obj2;
         }
 
-        public static string SearchXmlByKey(string xmlText, string xmlKey)
+        /*public static string SearchXmlByKey(string xmlText, string xmlKey)
         {
             string str2 = "";
             int start = 0;
@@ -833,6 +833,28 @@ namespace LibMobileDevice.CoreFundation
                 }
             }
             return str2.Trim();
+        }*/
+        public static string SearchXmlByKey(string xmlText, string xmlKey)
+        {
+            if (string.IsNullOrEmpty(xmlText) || string.IsNullOrEmpty(xmlKey))
+                return string.Empty;
+
+            int keyIndex = xmlText.IndexOf(xmlKey, StringComparison.Ordinal);
+            if (keyIndex < 0)
+                return string.Empty;
+
+            int startTagIndex = xmlText.IndexOf("<string>", keyIndex, StringComparison.Ordinal);
+            if (startTagIndex < 0)
+                return string.Empty;
+
+            startTagIndex += "<string>".Length;
+
+            int endTagIndex = xmlText.IndexOf("</string>", startTagIndex, StringComparison.Ordinal);
+            if (endTagIndex < 0 || endTagIndex <= startTagIndex)
+                return string.Empty;
+
+            string value = xmlText.Substring(startTagIndex, endTagIndex - startTagIndex);
+            return value.Trim();
         }
 
         public static IntPtr StringToCFString(string values)
